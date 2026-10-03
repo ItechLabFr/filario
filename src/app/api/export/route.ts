@@ -10,7 +10,12 @@ export async function GET() {
   const workspace = await ensureWorkspace(session.user);
   const backup = await createPortableBackup(workspace.organizationId);
 
-  return new Response(backup.bytes, {
+  const body = backup.bytes.buffer.slice(
+    backup.bytes.byteOffset,
+    backup.bytes.byteOffset + backup.bytes.byteLength
+  ) as ArrayBuffer;
+
+  return new Response(body, {
     headers: {
       "Content-Type": "application/zip",
       "Content-Disposition": `attachment; filename="${backup.filename}"`,
