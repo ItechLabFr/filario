@@ -12,6 +12,7 @@ export function ModelViewer({ src, title }: { src: string; title: string }) {
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
+    const element = host;
 
     setError("");
 
@@ -22,7 +23,7 @@ export function ModelViewer({ src, title }: { src: string; title: string }) {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    host.appendChild(renderer.domElement);
+    element.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -48,8 +49,8 @@ export function ModelViewer({ src, title }: { src: string; title: string }) {
     let frame = 0;
 
     function resize() {
-      const width = Math.max(1, host.clientWidth);
-      const height = Math.max(320, host.clientHeight);
+      const width = Math.max(1, element.clientWidth);
+      const height = Math.max(320, element.clientHeight);
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
@@ -76,7 +77,7 @@ export function ModelViewer({ src, title }: { src: string; title: string }) {
 
     resize();
     const observer = new ResizeObserver(resize);
-    observer.observe(host);
+    observer.observe(element);
 
     const loader = new ThreeMFLoader();
     loader.load(
