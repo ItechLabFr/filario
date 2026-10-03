@@ -19,8 +19,8 @@ export function AppShell({
     <div className="app-shell">
       <aside className="sidebar">
         <Link href="/dashboard" className="brand" aria-label="Filario">
-          <img className="light-logo" src="/brand/filario-logo-light.svg" alt="Filario" />
-          <img className="dark-logo" src="/brand/filario-logo-dark.svg" alt="Filario" />
+          <img className="light-logo" src="/brand/filario-logo-light.png" alt="Filario" />
+          <img className="dark-logo" src="/brand/filario-logo-dark.png" alt="Filario" />
         </Link>
 
         <nav className="nav">
