@@ -65,7 +65,7 @@ export async function GET(
 
   const safeName = model.file_name.replace(/[^0-9A-Za-z._ -]/g, "_");
 
-  return new Response(bytes, {
+  return new Response(new Uint8Array(bytes), {
     headers: {
       "Content-Type": "model/3mf",
       "Content-Length": String(bytes.length),
