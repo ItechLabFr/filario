@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 160" role="img" aria-labelledby="title">
+  <title id="title">Filario</title>
+  <g transform="translate(10 16)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="44" cy="64" rx="27" ry="47" stroke="#F4F7F8" stroke-width="14"/>
+    <ellipse cx="44" cy="64" rx="8" ry="19" stroke="#F4F7F8" stroke-width="7"/>
+    <path d="M68 27h43c14 0 23 8 23 20H77" stroke="#10BFAE" stroke-width="14"/>
+    <path d="M74 57h44c9 0 16 6 16 15H74" stroke="#10BFAE" stroke-width="14"/>
+    <path d="M72 88h31c0 13-9 20-22 20H67" stroke="#10BFAE" stroke-width="14"/>
+  </g>
+  <text x="165" y="106" fill="#F4F7F8" font-family="Inter, Geist, Arial, sans-serif" font-size="76" font-weight="700" letter-spacing="-3">Filario</text>
+</svg>
