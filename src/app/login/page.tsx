@@ -11,7 +11,7 @@ export default async function LoginPage() {
   return (
     <main className="auth-page">
       <section className="auth-card">
-        <img className="auth-logo" src="/brand/filario-logo-light.svg" alt="Filario" />
+        <img className="auth-logo" src="/brand/filario-logo-light.png" alt="Filario" />
         <h1>Bon retour.</h1>
         <p>Connectez-vous à votre atelier Filario.</p>
         <LoginForm />
