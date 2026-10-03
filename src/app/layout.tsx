@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   },
   description: "Gestion moderne et auto-hébergeable de vos filaments d'impression 3D.",
   icons: {
-    icon: "/brand/filario-mark.svg"
+    icon: "/brand/filario-icon-light.png"
   }
 };
 
