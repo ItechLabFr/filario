@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SignOutButton } from "@/components/sign-out";
-import type { Workspace } from "@/lib/workspace";
+import { switchWorkspace } from "@/app/actions";
+import type { Workspace, WorkspaceChoice } from "@/lib/workspace";
 
 export function AppShell({
   children,
   workspace,
+  workspaces,
   user
 }: {
   children: React.ReactNode;
   workspace: Workspace;
+  workspaces: WorkspaceChoice[];
   user: { name: string; email: string };
 }) {
   return (
@@ -30,6 +33,7 @@ export function AppShell({
           <Link href="/labels">Étiquettes</Link>
 
           <div className="nav-label">Compte</div>
+          <Link href="/team">Équipe</Link>
           <Link href="/settings/security">Sécurité</Link>
           <Link href="/settings/api">API</Link>
           <Link href="/settings/data">Données</Link>
@@ -41,6 +45,18 @@ export function AppShell({
             <strong>{workspace.organizationName}</strong>
             <span>{workspace.role} · {user.email}</span>
           </div>
+          {workspaces.length > 1 && (
+            <form action={switchWorkspace} className="form" style={{ gap: 6 }}>
+              <select className="select" name="organizationId" defaultValue={workspace.organizationId}>
+                {workspaces.map((item) => (
+                  <option key={item.organizationId} value={item.organizationId}>
+                    {item.organizationName} · {item.role}
+                  </option>
+                ))}
+              </select>
+              <button className="button small" type="submit">Changer d'atelier</button>
+            </form>
+          )}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             <ThemeToggle />
             <SignOutButton />
