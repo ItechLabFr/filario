@@ -1,0 +1,21 @@
+import { redirect } from "next/navigation";
+import { LoginForm } from "@/components/login-form";
+import { getSession } from "@/lib/session";
+
+export const dynamic = "force-dynamic";
+
+export default async function LoginPage() {
+  const session = await getSession();
+  if (session?.user) redirect("/dashboard");
+
+  return (
+    <main className="auth-page">
+      <section className="auth-card">
+        <img className="auth-logo" src="/brand/filario-logo-light.svg" alt="Filario" />
+        <h1>Bon retour.</h1>
+        <p>Connectez-vous à votre atelier Filario.</p>
+        <LoginForm />
+      </section>
+    </main>
+  );
+}

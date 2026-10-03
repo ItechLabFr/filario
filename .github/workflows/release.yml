@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Log in to GHCR
+        run: echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          IMAGE="ghcr.io/itechlabfr/filario:${VERSION}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+          DIGEST="$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE")"
+          echo "FILARIO_RELEASE_IMAGE=$DIGEST" >> "$GITHUB_ENV"
+
+      - name: Create signed update ZIP
+        env:
+          FILARIO_UPDATE_SIGNING_KEY_B64: ${{ secrets.FILARIO_UPDATE_SIGNING_KEY_B64 }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          node scripts/create-update-package.mjs "$VERSION" "$FILARIO_RELEASE_IMAGE" "filario-update-${VERSION}.zip"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME"             "filario-update-${VERSION}.zip"             --generate-notes             --title "Filario ${VERSION}"
