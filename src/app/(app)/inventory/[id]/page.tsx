@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { and, desc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { archiveSpool, setSpoolWeight } from "@/app/actions";
+import { archiveSpool, logDrying, setSpoolWeight } from "@/app/actions";
 import { db } from "@/lib/db";
-import { locations, spoolEvents, spools } from "@/lib/db/schema";
+import { dryingEvents, locations, spoolEvents, spools } from "@/lib/db/schema";
 import { requireSession } from "@/lib/session";
 import { ensureWorkspace } from "@/lib/workspace";
 import { dateTime, grams, money, percent } from "@/lib/format";
@@ -25,12 +25,20 @@ export default async function SpoolPage({ params }: { params: Promise<{ id: stri
 
   if (!spool) notFound();
 
-  const events = await db
+  const [events, dryingHistory] = await Promise.all([
+    db
     .select()
     .from(spoolEvents)
     .where(and(eq(spoolEvents.spoolId, id), eq(spoolEvents.organizationId, workspace.organizationId)))
     .orderBy(desc(spoolEvents.createdAt))
-    .limit(40);
+    .limit(40),
+    db
+      .select()
+      .from(dryingEvents)
+      .where(and(eq(dryingEvents.spoolId, id), eq(dryingEvents.organizationId, workspace.organizationId)))
+      .orderBy(desc(dryingEvents.createdAt))
+      .limit(10)
+  ]);
 
   const s = spool.spool;
 
@@ -122,7 +130,41 @@ export default async function SpoolPage({ params }: { params: Promise<{ id: stri
         </section>
 
         <section className="card">
-          <h2 style={{ marginTop: 0 }}>Notes</h2>
+          <h2 style={{ marginTop: 0 }}>Séchage</h2>
+          <form action={logDrying} className="form">
+            <input type="hidden" name="spoolId" value={s.id} />
+            <div className="form-row">
+              <div className="field">
+                <label>Température (°C)</label>
+                <input className="input" name="temperatureC" type="number" min="20" max="150" defaultValue={s.dryingTempC ?? 55} required />
+              </div>
+              <div className="field">
+                <label>Durée (minutes)</label>
+                <input className="input" name="durationMinutes" type="number" min="1" defaultValue="360" required />
+              </div>
+            </div>
+            <div className="field">
+              <label>Note</label>
+              <input className="input" name="notes" placeholder="Drybox, déshydrateur…" />
+            </div>
+            <button className="button primary" type="submit">Enregistrer le séchage</button>
+          </form>
+
+          {dryingHistory.length > 0 && (
+            <div style={{ marginTop: 20 }}>
+              <strong>Derniers séchages</strong>
+              <div className="grid" style={{ gap: 8, marginTop: 10 }}>
+                {dryingHistory.map((drying) => (
+                  <div className="kv-item" key={drying.id}>
+                    <span>{dateTime(drying.createdAt)}</span>
+                    <strong>{drying.temperatureC} °C · {Math.round(drying.durationMinutes / 60 * 10) / 10} h</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <h2 style={{ marginTop: 28 }}>Notes</h2>
           <p style={{ color: "var(--muted)", whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{s.notes || "Aucune note."}</p>
           <form action={archiveSpool} style={{ marginTop: 24 }}>
             <input type="hidden" name="id" value={s.id} />
