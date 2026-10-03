@@ -3,7 +3,7 @@ import { APIError, createAuthMiddleware } from "better-auth/api";
 import { twoFactor } from "better-auth/plugins";
 import { passkey } from "@better-auth/passkey";
 import pg from "pg";
-import { claimInstanceAdmin, isRegistrationAllowed } from "@/lib/instance-settings";
+import { isRegistrationAllowed } from "@/lib/instance-settings";
 
 const { Pool } = pg;
 
@@ -54,16 +54,6 @@ export const auth = betterAuth({
         throw new APIError("BAD_REQUEST", {
           message: "Les inscriptions sont désactivées par l'administrateur de cette instance Filario."
         });
-      }
-    }),
-    after: createAuthMiddleware(async (ctx) => {
-      if (ctx.path !== "/sign-up/email" || process.env.FILARIO_CLOUD === "true") {
-        return;
-      }
-
-      const userId = ctx.context.newSession?.user?.id;
-      if (userId) {
-        await claimInstanceAdmin(userId);
       }
     })
   },
