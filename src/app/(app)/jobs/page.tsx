@@ -64,13 +64,19 @@ export default async function JobsPage() {
     <>
       <div className="page-head">
         <div>
+          <div className="eyebrow">Production</div>
           <h1>Impressions</h1>
-          <p>Planifiez une impression et déduisez automatiquement la consommation de la bobine à la fin.</p>
+          <p>Planifiez, lancez et terminez vos impressions avec le suivi automatique de la matière consommée.</p>
+        </div>
+        <div className="page-actions">
+          <span className="pill accent">{jobs.filter((job) => job.status === "printing").length} en cours</span>
+          <span className="pill">{jobs.length} job{jobs.length > 1 ? "s" : ""}</span>
         </div>
       </div>
 
       <div className="grid grid-2" style={{ alignItems: "start" }}>
-        <section className="card">
+        <section className="card elevated">
+          <div className="eyebrow">Nouveau job</div>
           <h2 style={{ marginTop: 0 }}>Nouvelle impression</h2>
           <form action={createPrintJob} className="form">
             <div className="field">
@@ -116,8 +122,13 @@ export default async function JobsPage() {
           </form>
         </section>
 
-        <section className="card">
-          <h2 style={{ marginTop: 0 }}>Activité</h2>
+        <section>
+          <div className="section-head" style={{ marginTop: 0 }}>
+            <div>
+              <h2>Activité</h2>
+              <p>Vos dernières impressions et leur consommation réelle.</p>
+            </div>
+          </div>
           {jobs.length === 0 ? (
             <div className="empty">
               <strong>Aucune impression.</strong>
@@ -126,7 +137,7 @@ export default async function JobsPage() {
           ) : (
             <div className="grid">
               {jobs.map((job) => (
-                <article className="card flat" key={job.id}>
+                <article className="card" key={job.id}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
                     <div>
                       <strong>{job.name}</strong>
@@ -135,7 +146,7 @@ export default async function JobsPage() {
                         {job.spoolManufacturer ? ` · ${job.spoolManufacturer} ${job.spoolProductName}` : ""}
                       </div>
                     </div>
-                    <span className="pill">{statusLabel(job.status)}</span>
+                    <span className={job.status === "printing" ? "pill accent" : "pill"}>{statusLabel(job.status)}</span>
                   </div>
 
                   <div className="kv" style={{ marginTop: 14 }}>
