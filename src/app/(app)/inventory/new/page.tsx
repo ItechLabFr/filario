@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { createSpool } from "@/app/actions";
+import { CatalogPicker } from "@/components/catalog-picker";
 import { db } from "@/lib/db";
 import { locations } from "@/lib/db/schema";
 import { requireSession } from "@/lib/session";
@@ -24,6 +25,11 @@ export default async function NewSpoolPage() {
       </div>
 
       <form action={createSpool} className="card form">
+        <CatalogPicker />
+        <input type="hidden" name="externalSource" />
+        <input type="hidden" name="externalId" />
+        <input type="hidden" name="spoolWeightG" />
+        <input type="hidden" name="densityGCm3" />
         <div className="form-row">
           <div className="field">
             <label>Fabricant *</label>
