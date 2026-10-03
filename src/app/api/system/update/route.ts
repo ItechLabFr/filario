@@ -1,5 +1,6 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
+import packageJson from "../../../../../package.json";
 import { requireSession } from "@/lib/session";
 import { ensureWorkspace } from "@/lib/workspace";
 import { verifyUpdatePackage } from "@/lib/update-package";
@@ -39,7 +40,7 @@ export async function GET() {
     return Response.json({
       enabled: Boolean(process.env.FILARIO_UPDATE_PUBLIC_KEY_B64),
       status,
-      currentVersion: process.env.npm_package_version || "0.1.0"
+      currentVersion: packageJson.version
     });
   } catch (error) {
     return Response.json({
