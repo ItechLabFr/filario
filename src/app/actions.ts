@@ -20,6 +20,7 @@ import {
 import { requireSession } from "@/lib/session";
 import { ensureWorkspace, requireOrganizationAccess } from "@/lib/workspace";
 import { audit } from "@/lib/audit";
+import { isInstanceAdmin, updateRegistrationPolicy } from "@/lib/instance-settings";
 
 const nullableInt = (value: FormDataEntryValue | null) => {
   if (value == null || value === "") return null;
@@ -634,4 +635,30 @@ export async function removeTeamMember(formData: FormData) {
   });
 
   revalidatePath("/team");
+}
+
+
+export async function setInstanceRegistration(formData: FormData) {
+  const session = await requireSession();
+
+  if (!(await isInstanceAdmin(session.user.id))) {
+    throw new Error("Seul l’administrateur de l’instance peut modifier les inscriptions.");
+  }
+
+  const enabled = String(formData.get("enabled")) === "true";
+  await updateRegistrationPolicy(enabled);
+
+  const workspace = await ensureWorkspace(session.user);
+  await audit({
+    organizationId: workspace.organizationId,
+    userId: session.user.id,
+    action: enabled ? "system.registration.opened" : "system.registration.closed",
+    targetType: "system",
+    targetId: "registration",
+    metadata: { enabled }
+  });
+
+  revalidatePath("/settings/system");
+  revalidatePath("/login");
+  revalidatePath("/register");
 }
