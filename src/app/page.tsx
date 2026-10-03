@@ -9,7 +9,7 @@ export default async function HomePage() {
   return (
     <main className="auth-page">
       <section className="auth-card" style={{ width: "min(720px, 100%)" }}>
-        <img className="auth-logo" src="/brand/filario-logo-light.svg" alt="Filario" />
+        <img className="auth-logo" src="/brand/filario-logo-light.png" alt="Filario" />
         <h1>Votre filament, parfaitement organisé.</h1>
         <p>
           Inventaire, poids restant, QR codes, emplacements, imprimantes, sécurité MFA
