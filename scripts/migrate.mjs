@@ -75,5 +75,12 @@ for (const file of files) {
   }
 }
 
+await pool.query(
+  `UPDATE filario_instance_settings
+   SET enforce_registration_policy = $1, updated_at = now()
+   WHERE id = 1`,
+  [process.env.FILARIO_CLOUD !== "true"]
+);
+
 await pool.end();
 console.log("Database is up to date.");
