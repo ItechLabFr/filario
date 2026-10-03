@@ -18,19 +18,29 @@ export default async function NewSpoolPage() {
     <>
       <div className="page-head">
         <div>
+          <div className="eyebrow">Nouvelle matière</div>
           <h1>Ajouter une bobine</h1>
-          <p>Créez le jumeau numérique de votre bobine physique.</p>
+          <p>Recherchez d’abord la référence, puis complétez uniquement ce qui manque.</p>
         </div>
         <Link className="button" href="/inventory">Annuler</Link>
       </div>
 
-      <form action={createSpool} className="card form">
-        <CatalogPicker />
+      <form action={createSpool} className="form">
+        <section className="card elevated">
+          <div className="eyebrow">Catalogue</div>
+          <h2 style={{ margin: "0 0 14px" }}>Trouver le filament</h2>
+          <CatalogPicker />
+        </section>
+
         <input type="hidden" name="externalSource" />
         <input type="hidden" name="externalId" />
         <input type="hidden" name="spoolWeightG" />
         <input type="hidden" name="densityGCm3" />
-        <div className="form-row">
+
+        <section className="card">
+          <div className="eyebrow">Identité</div>
+          <h2 style={{ margin: "0 0 16px" }}>Référence et couleur</h2>
+          <div className="form-row">
           <div className="field">
             <label>Fabricant *</label>
             <input className="input" name="manufacturer" placeholder="Polymaker" required />
@@ -68,7 +78,9 @@ export default async function NewSpoolPage() {
           </div>
         </div>
 
-        <div className="form-row">
+          </div>
+
+          <div className="form-row">
           <div className="field">
             <label>Poids initial (g)</label>
             <input className="input" name="initialWeightG" type="number" min="1" defaultValue="1000" required />
@@ -93,7 +105,11 @@ export default async function NewSpoolPage() {
           </div>
         </div>
 
-        <h2 style={{ fontSize: 16, margin: "12px 0 0" }}>Paramètres techniques</h2>
+        </section>
+
+        <section className="card">
+          <div className="eyebrow">Réglages</div>
+          <h2 style={{ margin: "0 0 16px" }}>Paramètres techniques</h2>
         <div className="form-row">
           <div className="field">
             <label>Buse min / max (°C)</label>
@@ -122,12 +138,14 @@ export default async function NewSpoolPage() {
           </div>
         </div>
 
-        <div className="field">
-          <label>Notes</label>
-          <textarea className="textarea" name="notes" placeholder="Réglages, lot, observations…" />
-        </div>
+          <div className="field">
+            <label>Notes</label>
+            <textarea className="textarea" name="notes" placeholder="Réglages, lot, observations…" />
+          </div>
+        </section>
 
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+          <Link className="button" href="/inventory">Annuler</Link>
           <button className="button primary" type="submit">Créer la bobine</button>
         </div>
       </form>
