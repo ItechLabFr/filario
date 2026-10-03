@@ -14,6 +14,7 @@ const requiredTables = [
   "drying_events",
   "printers",
   "api_keys",
+  "filario_instance_settings",
   "filario_migrations"
 ];
 
@@ -25,6 +26,24 @@ for (const table of requiredTables) {
   if (!result.rows[0]?.table_name) {
     throw new Error(`Missing table: ${table}`);
   }
+}
+
+
+const settings = await pool.query(
+  "select id, allow_registration, enforce_registration_policy from filario_instance_settings where id = 1"
+);
+if (!settings.rows[0]) {
+  throw new Error("Missing Filario instance settings singleton");
+}
+
+const trigger = await pool.query(
+  `select 1
+   from pg_trigger
+   where tgname = 'filario_user_registration_guard'
+     and not tgisinternal`
+);
+if (!trigger.rowCount) {
+  throw new Error("Missing user registration guard trigger");
 }
 
 const version = await pool.query(
