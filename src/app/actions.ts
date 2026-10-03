@@ -9,6 +9,7 @@ import { db } from "@/lib/db";
 import {
   locations,
   printers,
+  dryingEvents,
   printJobs,
   printJobFilaments,
   spoolEvents,
@@ -424,4 +425,51 @@ export async function completePrintJob(formData: FormData) {
   revalidatePath("/jobs");
   revalidatePath("/inventory");
   revalidatePath("/dashboard");
+}
+
+
+export async function logDrying(formData: FormData) {
+  const session = await requireSession();
+  const workspace = await ensureWorkspace(session.user);
+  const spoolId = z.string().uuid().parse(String(formData.get("spoolId")));
+  const temperatureC = z.number().int().min(20).max(150).parse(Number(formData.get("temperatureC")));
+  const durationMinutes = z.number().int().min(1).max(7 * 24 * 60).parse(Number(formData.get("durationMinutes")));
+  const notes = String(formData.get("notes") ?? "").trim();
+
+  const [spool] = await db
+    .select({ id: spools.id })
+    .from(spools)
+    .where(and(eq(spools.id, spoolId), eq(spools.organizationId, workspace.organizationId)))
+    .limit(1);
+  if (!spool) throw new Error("Bobine introuvable.");
+
+  await db.transaction(async (tx) => {
+    await tx.insert(dryingEvents).values({
+      organizationId: workspace.organizationId,
+      spoolId,
+      userId: session.user.id,
+      temperatureC,
+      durationMinutes,
+      notes: notes || null
+    });
+
+    await tx.insert(spoolEvents).values({
+      organizationId: workspace.organizationId,
+      spoolId,
+      userId: session.user.id,
+      eventType: "dried",
+      metadata: { temperatureC, durationMinutes, notes: notes || null }
+    });
+  });
+
+  await audit({
+    organizationId: workspace.organizationId,
+    userId: session.user.id,
+    action: "spool.dried",
+    targetType: "spool",
+    targetId: spoolId,
+    metadata: { temperatureC, durationMinutes }
+  });
+
+  revalidatePath(`/inventory/${spoolId}`);
 }
