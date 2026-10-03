@@ -30,6 +30,7 @@ export function AppShell({
 
           <div className="nav-label">Compte</div>
           <Link href="/settings/security">Sécurité</Link>
+          <Link href="/settings/api">API</Link>
           <Link href="/settings/data">Données</Link>
         </nav>
 
