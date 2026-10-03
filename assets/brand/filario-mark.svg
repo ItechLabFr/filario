@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">Filario</title>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="37" cy="64" rx="24" ry="42" stroke="#242B31" stroke-width="13"/>
+    <ellipse cx="37" cy="64" rx="7" ry="17" stroke="#242B31" stroke-width="7"/>
+    <path d="M58 31h36c13 0 21 7 21 18H67" stroke="#10BFAE" stroke-width="13"/>
+    <path d="M64 57h38c8 0 13 5 13 13H64" stroke="#10BFAE" stroke-width="13"/>
+    <path d="M62 83h27c0 12-8 18-20 18H58" stroke="#10BFAE" stroke-width="13"/>
+  </g>
+</svg>
