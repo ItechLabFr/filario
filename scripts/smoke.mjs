@@ -15,6 +15,8 @@ const requiredTables = [
   "printers",
   "api_keys",
   "filario_instance_settings",
+  "maker_profiles",
+  "published_models",
   "filario_migrations"
 ];
 
