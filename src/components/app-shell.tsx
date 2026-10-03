@@ -32,6 +32,7 @@ export function AppShell({
           <Link href="/settings/security">Sécurité</Link>
           <Link href="/settings/api">API</Link>
           <Link href="/settings/data">Données</Link>
+          <Link href="/settings/system">Système</Link>
         </nav>
 
         <div className="sidebar-footer">
