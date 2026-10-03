@@ -6,6 +6,9 @@ services:
       POSTGRES_DB: filario
       POSTGRES_USER: filario
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-filario}
+      # PostgreSQL 18 changed its default data layout. Pin PGDATA inside
+      # our mounted volume so upgrades/restarts keep the cluster persistent.
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - filario_postgres_data:/var/lib/postgresql/data
     healthcheck:
