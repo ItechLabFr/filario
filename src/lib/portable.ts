@@ -10,6 +10,7 @@ const tableFiles = [
   ["locations", "data/locations.jsonl"],
   ["spools", "data/spools.jsonl"],
   ["spool_events", "data/spool-events.jsonl"],
+  ["drying_events", "data/drying-events.jsonl"],
   ["printers", "data/printers.jsonl"],
   ["printer_slots", "data/printer-slots.jsonl"],
   ["print_jobs", "data/print-jobs.jsonl"],
@@ -125,6 +126,7 @@ const allowedColumns: Record<string, string[]> = {
   locations: ["id","organization_id","parent_id","name","description","created_at","updated_at"],
   spools: ["id","organization_id","public_id","manufacturer","product_name","material","color_name","color_hex","diameter_mm","initial_weight_g","remaining_weight_g","spool_weight_g","density_g_cm3","nozzle_min_c","nozzle_max_c","bed_min_c","bed_max_c","drying_temp_c","purchase_price_cents","currency","lot_number","external_source","external_id","location_id","opened_at","purchased_at","notes","status","created_at","updated_at"],
   spool_events: ["id","organization_id","spool_id","user_id","event_type","quantity_g","metadata","created_at"],
+  drying_events: ["id","organization_id","spool_id","user_id","temperature_c","duration_minutes","notes","created_at"],
   printers: ["id","organization_id","name","manufacturer","model","integration_type","integration_url","status","created_at","updated_at"],
   printer_slots: ["id","organization_id","printer_id","name","spool_id","created_at"],
   print_jobs: ["id","organization_id","printer_id","name","status","started_at","finished_at","duration_seconds","notes","created_at"],
@@ -220,6 +222,7 @@ export async function restorePortableBackup(
       "print_job_filaments",
       "printer_slots",
       "spool_events",
+      "drying_events",
       "print_jobs",
       "purchases",
       "audit_logs",
@@ -250,6 +253,7 @@ export async function restorePortableBackup(
     await insertRows(client, "print_job_filaments", await rows(zip, "data/print-job-filaments.jsonl"), organizationId);
     await insertRows(client, "purchases", await rows(zip, "data/purchases.jsonl"), organizationId);
     await insertRows(client, "spool_events", await rows(zip, "data/spool-events.jsonl"), organizationId);
+    await insertRows(client, "drying_events", await rows(zip, "data/drying-events.jsonl"), organizationId);
     await insertRows(client, "audit_logs", await rows(zip, "data/audit-logs.jsonl"), organizationId);
 
     await client.query(
