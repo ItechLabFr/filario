@@ -3,6 +3,7 @@
 import { randomBytes } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -16,7 +17,7 @@ import {
   spools
 } from "@/lib/db/schema";
 import { requireSession } from "@/lib/session";
-import { ensureWorkspace } from "@/lib/workspace";
+import { ensureWorkspace, requireOrganizationAccess } from "@/lib/workspace";
 import { audit } from "@/lib/audit";
 
 const nullableInt = (value: FormDataEntryValue | null) => {
@@ -472,4 +473,22 @@ export async function logDrying(formData: FormData) {
   });
 
   revalidatePath(`/inventory/${spoolId}`);
+}
+
+
+export async function switchWorkspace(formData: FormData) {
+  const session = await requireSession();
+  const organizationId = z.string().uuid().parse(String(formData.get("organizationId")));
+  await requireOrganizationAccess(session.user.id, organizationId);
+
+  const cookieStore = await cookies();
+  cookieStore.set("filario-org", organizationId, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365
+  });
+
+  redirect("/dashboard");
 }
