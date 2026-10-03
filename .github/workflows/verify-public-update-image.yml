@@ -1,0 +1,16 @@
+name: Verify public update image
+
+on:
+  push:
+    branches:
+      - "release/verify-public-0.1.1"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Anonymous pull
+        run: docker pull ghcr.io/itechlabfr/filario@sha256:c2cb625b72f7ff6c0defa6521cbda2ca99318abf92e9a011ace701ddf810eace
