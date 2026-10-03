@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-labelledby="title desc">
+  <title id="title">Filario</title>
+  <desc id="desc">Filario — Gérez votre filament. Gardez le contrôle.</desc>
+  <rect width="1280" height="360" rx="28" fill="#0B0D10"/>
+  <circle cx="1090" cy="54" r="260" fill="#10BFAE" opacity=".055"/>
+  <circle cx="1170" cy="390" r="300" fill="#10BFAE" opacity=".035"/>
+  <g transform="translate(90 72)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="54" cy="108" rx="38" ry="66" stroke="#F4F7F8" stroke-width="18"/>
+    <ellipse cx="54" cy="108" rx="12" ry="28" stroke="#F4F7F8" stroke-width="10"/>
+    <path d="M88 56h62c21 0 34 11 34 28H101" stroke="#10BFAE" stroke-width="18"/>
+    <path d="M97 98h63c13 0 24 8 24 21H97" stroke="#10BFAE" stroke-width="18"/>
+    <path d="M94 142h45c0 19-13 29-32 29H86" stroke="#10BFAE" stroke-width="18"/>
+  </g>
+  <text x="330" y="158" fill="#F4F7F8" font-family="Inter,Arial,sans-serif" font-size="94" font-weight="750" letter-spacing="-5">Filario</text>
+  <text x="335" y="216" fill="#A6B0B7" font-family="Inter,Arial,sans-serif" font-size="27" font-weight="500">Gérez votre filament. Gardez le contrôle.</text>
+  <text x="335" y="266" fill="#10BFAE" font-family="Inter,Arial,sans-serif" font-size="20" font-weight="650">Cloud + Self-Hosted · Open API · QR · MFA · Portabilité totale</text>
+</svg>
