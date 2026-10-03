@@ -1,0 +1,77 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: filario
+      POSTGRES_USER: filario
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-filario}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - filario_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U filario -d filario"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  updates-init:
+    image: alpine:3.22
+    restart: "no"
+    command: ["sh", "-c", "mkdir -p /updates/packages && chown -R 1001:1001 /updates"]
+    volumes:
+      - filario_updates:/updates
+
+  filario:
+    image: filario:managed
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      updates-init:
+        condition: service_completed_successfully
+    environment:
+      FILARIO_URL: ${FILARIO_URL:-http://localhost:3000}
+      AUTH_SECRET: ${AUTH_SECRET:-change-me-with-a-long-random-secret}
+      DATABASE_URL: postgresql://filario:${POSTGRES_PASSWORD:-filario}@postgres:5432/filario
+      PASSKEY_RP_ID: ${PASSKEY_RP_ID:-}
+      PASSKEY_RP_NAME: ${PASSKEY_RP_NAME:-Filario}
+      FILARIO_CLOUD: ${FILARIO_CLOUD:-false}
+      FILARIO_UPDATE_PUBLIC_KEY_B64: ${FILARIO_UPDATE_PUBLIC_KEY_B64:-}
+      FILARIO_UPDATE_DIR: /var/lib/filario/updates
+      NODE_ENV: production
+      PORT: 3000
+    volumes:
+      - filario_updates:/var/lib/filario/updates
+    ports:
+      - "${FILARIO_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+
+  updater:
+    build:
+      context: .
+      dockerfile: Dockerfile.updater
+    restart: unless-stopped
+    depends_on:
+      filario:
+        condition: service_healthy
+    environment:
+      UPDATE_DIR: /updates
+      COMPOSE_FILE: /opt/filario/docker-compose.yml
+      POLL_SECONDS: 5
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/opt/filario:ro
+      - filario_updates:/updates
+
+volumes:
+  filario_postgres_data:
+  filario_updates:
