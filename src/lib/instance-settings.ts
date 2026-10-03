@@ -58,7 +58,8 @@ export async function getInstanceSettings(): Promise<InstanceSettings> {
   return {
     adminUserId: row.admin_user_id,
     allowRegistration: row.allow_registration,
-    registrationAllowed: bootstrap || row.allow_registration,
+    registrationAllowed:
+      process.env.FILARIO_CLOUD === "true" || bootstrap || row.allow_registration,
     userCount,
     bootstrap
   };
