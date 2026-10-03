@@ -1,19 +1,14 @@
 # Identité Filario
 
-## Fichiers
+Les fichiers PNG de ce dossier sont les **assets de marque approuvés** et doivent être utilisés tels quels.
 
-- `filario-logo-light.svg` — fonds clairs.
-- `filario-logo-dark.svg` — fonds sombres.
-- `filario-mark.svg` — symbole seul, favicon et icône d'application.
+- `filario-logo-light.png` — logo complet pour fonds clairs
+- `filario-logo-dark.png` — logo complet pour fonds sombres
+- `filario-icon-light.png` — icône / app icon claire
+- `filario-icon-dark.png` — icône / app icon sombre
 
-## Couleurs initiales
+## Règle
 
-- Filario Teal : `#10BFAE`
-- Graphite : `#242B31`
-- Off White : `#F4F7F8`
+Ne pas redessiner, retracer ou interpréter le symbole dans une autre géométrie sans validation explicite.
 
-## Direction
-
-Identité simple, technique et premium. Pas de glassmorphism excessif ni de codes visuels « IA ».
-
-Ces SVG constituent la première version vectorielle du concept et pourront être raffinés sans changer la direction générale.
+La bobine + les trois rubans turquoise formant le **F** constituent la signature visuelle Filario.
