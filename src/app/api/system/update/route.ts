@@ -4,6 +4,7 @@ import { requireSession } from "@/lib/session";
 import { ensureWorkspace } from "@/lib/workspace";
 import { verifyUpdatePackage } from "@/lib/update-package";
 import { audit } from "@/lib/audit";
+import { isInstanceAdmin } from "@/lib/instance-settings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,8 +15,8 @@ async function requireSystemAdmin() {
   const session = await requireSession();
   const workspace = await ensureWorkspace(session.user);
 
-  if (!["owner", "admin"].includes(workspace.role)) {
-    throw new Error("Droits administrateur requis.");
+  if (!(await isInstanceAdmin(session.user.id))) {
+    throw new Error("Droits administrateur de l’instance requis.");
   }
   if (process.env.FILARIO_CLOUD === "true") {
     throw new Error("Les mises à jour ZIP sont désactivées sur Filario Cloud.");

@@ -91,3 +91,20 @@ Les extensions Cloud peuvent couvrir :
 - e-mail transactionnel.
 
 Elles ne doivent jamais rendre les données incompatibles avec une instance self-hosted.
+
+
+## Premier compte et inscriptions
+
+Sur une instance auto-hébergée neuve, la création du **premier compte** reste toujours possible.
+Ce premier utilisateur devient l'**administrateur de l'instance Filario**.
+
+Après la création de ce premier compte, les nouvelles inscriptions sont **fermées par défaut**.
+L'administrateur de l'instance peut les ouvrir ou les refermer depuis :
+
+`Paramètres → Système → Création de comptes`
+
+Le contrôle est appliqué côté serveur sur l'endpoint d'inscription Better Auth : masquer le formulaire
+dans l'interface n'est donc pas la seule protection.
+
+Le rôle d'administrateur de l'instance est distinct des rôles d'un atelier (`owner`, `admin`,
+`manager`, etc.). Un propriétaire d'atelier n'obtient pas automatiquement les droits système.

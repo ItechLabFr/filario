@@ -8,12 +8,14 @@ export function AppShell({
   children,
   workspace,
   workspaces,
-  user
+  user,
+  instanceAdmin
 }: {
   children: React.ReactNode;
   workspace: Workspace;
   workspaces: WorkspaceChoice[];
   user: { name: string; email: string };
+  instanceAdmin: boolean;
 }) {
   return (
     <div className="app-shell">
@@ -37,14 +39,14 @@ export function AppShell({
           <Link href="/settings/security">Sécurité</Link>
           <Link href="/settings/api">API</Link>
           <Link href="/settings/data">Données</Link>
-          <Link href="/settings/system">Système</Link>
+          {instanceAdmin && <Link href="/settings/system">Système</Link>}
           <Link href="/settings/audit">Journal d'audit</Link>
         </nav>
 
         <div className="sidebar-footer">
           <div className="user-block">
             <strong>{workspace.organizationName}</strong>
-            <span>{workspace.role} · {user.email}</span>
+            <span>{instanceAdmin ? "admin instance · " : ""}{workspace.role} · {user.email}</span>
           </div>
           {workspaces.length > 1 && (
             <form action={switchWorkspace} className="form" style={{ gap: 6 }}>

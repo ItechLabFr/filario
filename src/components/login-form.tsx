@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 
-export function LoginForm() {
+export function LoginForm({ registrationAllowed }: { registrationAllowed: boolean }) {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -72,7 +72,11 @@ export function LoginForm() {
       </button>
 
       <div className="auth-switch">
-        Pas encore de compte ? <Link href="/register">Créer un espace</Link>
+        {registrationAllowed ? (
+          <>Pas encore de compte ? <Link href="/register">Créer un espace</Link></>
+        ) : (
+          <>Les nouvelles inscriptions sont fermées.</>
+        )}
       </div>
     </>
   );
