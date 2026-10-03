@@ -1,0 +1,28 @@
+name: Publish Filario 0.1.1 image
+
+on:
+  push:
+    branches:
+      - "release/v0.1.1-final"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        run: echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        run: |
+          IMAGE="ghcr.io/itechlabfr/filario:update-0.1.1-final"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+          docker inspect --format='FILARIO_RELEASE_IMAGE={{index .RepoDigests 0}}' "$IMAGE"
