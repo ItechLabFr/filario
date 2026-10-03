@@ -1,1 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="37" cy="64" rx="24" ry="42" stroke="#242B31" stroke-width="13"/><ellipse cx="37" cy="64" rx="7" ry="17" stroke="#242B31" stroke-width="7"/><path d="M58 31h36c13 0 21 7 21 18H67" stroke="#10BFAE" stroke-width="13"/><path d="M64 57h38c8 0 13 5 13 13H64" stroke="#10BFAE" stroke-width="13"/><path d="M62 83h27c0 12-8 18-20 18H58" stroke="#10BFAE" stroke-width="13"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="Filario">
+<defs>
+  <linearGradient id="gDark" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2A313A"/><stop offset="1" stop-color="#171D24"/></linearGradient>
+  <linearGradient id="gTeal" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#16D4C4"/><stop offset="1" stop-color="#08B9AB"/></linearGradient>
+  <mask id="hole"><rect width="170" height="290" fill="white"/><ellipse cx="67" cy="160" rx="18" ry="36" fill="black"/></mask>
+</defs>
+<rect x="10" y="10" width="300" height="300" rx="70" fill="none" stroke="#DDE4E7" stroke-width="5"/>
+<ellipse cx="91" cy="160" rx="55" ry="94" fill="#111820"/>
+<ellipse cx="80" cy="160" rx="55" ry="94" fill="#F5F7F8"/>
+<ellipse cx="70" cy="160" rx="55" ry="94" fill="url(#gDark)" mask="url(#hole)"/>
+<path d="M111 70h126c21 0 36 13 36 32v5H137c-13 0-22-7-26-18z" fill="url(#gTeal)"/>
+<path d="M123 121h108c22 0 39 14 39 32s-17 32-39 32h-94c-13 0-21-7-25-18l-7-22c4-15 10-24 18-24z" fill="url(#gTeal)"/>
+<path d="M119 192h100c19 0 32 10 32 25 0 18-14 29-34 29h-38c-19 0-29 10-35 29-4 13-11 23-22 29H98v-49c0-29 7-49 21-63z" fill="url(#gTeal)"/>
+</svg>
