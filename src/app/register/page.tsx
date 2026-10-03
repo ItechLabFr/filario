@@ -11,7 +11,7 @@ export default async function RegisterPage() {
   return (
     <main className="auth-page">
       <section className="auth-card">
-        <img className="auth-logo" src="/brand/filario-logo-light.svg" alt="Filario" />
+        <img className="auth-logo" src="/brand/filario-logo-light.png" alt="Filario" />
         <h1>Créer votre atelier.</h1>
         <p>Vos données resteront exportables et compatibles avec une installation auto-hébergée.</p>
         <RegisterForm />
