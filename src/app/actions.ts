@@ -662,3 +662,92 @@ export async function setInstanceRegistration(formData: FormData) {
   revalidatePath("/login");
   revalidatePath("/register");
 }
+
+
+export async function saveMakerProfile(formData: FormData) {
+  const session = await requireSession();
+  const handle = z.string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9][a-z0-9_-]{2,31}$/, "Identifiant maker invalide.")
+    .parse(String(formData.get("handle") ?? ""));
+
+  const displayName = z.string().trim().min(1).max(100).parse(
+    String(formData.get("displayName") ?? session.user.name ?? "")
+  );
+  const bio = String(formData.get("bio") ?? "").trim().slice(0, 1000);
+  const avatarUrl = String(formData.get("avatarUrl") ?? "").trim().slice(0, 1000);
+  const websiteUrl = String(formData.get("websiteUrl") ?? "").trim().slice(0, 1000);
+  const isPublic = String(formData.get("isPublic")) === "true";
+
+  if (websiteUrl) z.string().url().parse(websiteUrl);
+  if (avatarUrl) z.string().url().parse(avatarUrl);
+
+  await pool.query(
+    `INSERT INTO maker_profiles (
+       user_id, handle, display_name, bio, avatar_url, website_url, is_public, updated_at
+     ) VALUES ($1,$2,$3,$4,$5,$6,$7,now())
+     ON CONFLICT (user_id) DO UPDATE SET
+       handle = EXCLUDED.handle,
+       display_name = EXCLUDED.display_name,
+       bio = EXCLUDED.bio,
+       avatar_url = EXCLUDED.avatar_url,
+       website_url = EXCLUDED.website_url,
+       is_public = EXCLUDED.is_public,
+       updated_at = now()`,
+    [
+      session.user.id,
+      handle,
+      displayName,
+      bio || null,
+      avatarUrl || null,
+      websiteUrl || null,
+      isPublic
+    ]
+  );
+
+  if (!isPublic) {
+    await pool.query(
+      `UPDATE published_models
+       SET visibility = 'unlisted', updated_at = now()
+       WHERE owner_user_id = $1 AND visibility = 'public'`,
+      [session.user.id]
+    );
+  }
+
+  revalidatePath("/library");
+  revalidatePath("/discover");
+  revalidatePath(`/makers/${handle}`);
+}
+
+export async function setPublishedModelVisibility(formData: FormData) {
+  const session = await requireSession();
+  const modelId = z.string().uuid().parse(String(formData.get("modelId")));
+  const visibility = z.enum(["private", "unlisted", "public"]).parse(
+    String(formData.get("visibility"))
+  );
+
+  if (visibility === "public") {
+    const maker = await pool.query(
+      "SELECT is_public FROM maker_profiles WHERE user_id = $1 LIMIT 1",
+      [session.user.id]
+    );
+    if (!maker.rows[0]?.is_public) {
+      throw new Error("Votre profil maker doit être public avant de publier un modèle.");
+    }
+  }
+
+  const result = await pool.query(
+    `UPDATE published_models
+     SET visibility = $1, updated_at = now()
+     WHERE id = $2 AND owner_user_id = $3
+     RETURNING slug`,
+    [visibility, modelId, session.user.id]
+  );
+
+  if (!result.rows[0]) throw new Error("Modèle introuvable.");
+
+  revalidatePath("/library");
+  revalidatePath("/discover");
+  revalidatePath(`/models/${result.rows[0].slug}`);
+}
