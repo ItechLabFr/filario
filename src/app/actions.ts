@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { db } from "@/lib/db";
+import { db, pool } from "@/lib/db";
 import {
   locations,
   printers,
@@ -491,4 +491,146 @@ export async function switchWorkspace(formData: FormData) {
   });
 
   redirect("/dashboard");
+}
+
+
+const memberRoleSchema = z.enum(["owner", "admin", "manager", "member", "viewer"]);
+
+function assertCanManageMembers(role: string) {
+  if (!["owner", "admin"].includes(role)) {
+    throw new Error("Droits administrateur requis.");
+  }
+}
+
+export async function addTeamMember(formData: FormData) {
+  const session = await requireSession();
+  const workspace = await ensureWorkspace(session.user);
+  assertCanManageMembers(workspace.role);
+
+  const email = z.string().email().parse(String(formData.get("email") ?? "").trim().toLowerCase());
+  const role = memberRoleSchema.parse(String(formData.get("role") ?? "member"));
+
+  if (role === "owner" && workspace.role !== "owner") {
+    throw new Error("Seul un propriétaire peut nommer un autre propriétaire.");
+  }
+
+  const userResult = await pool.query(
+    'SELECT id, email FROM "user" WHERE lower(email) = $1 LIMIT 1',
+    [email]
+  );
+  const user = userResult.rows[0];
+  if (!user) {
+    throw new Error("Cet utilisateur doit d'abord créer un compte Filario.");
+  }
+
+  await db.insert(memberships).values({
+    organizationId: workspace.organizationId,
+    userId: String(user.id),
+    role
+  }).onConflictDoUpdate({
+    target: [memberships.organizationId, memberships.userId],
+    set: { role }
+  });
+
+  await audit({
+    organizationId: workspace.organizationId,
+    userId: session.user.id,
+    action: "membership.upserted",
+    targetType: "user",
+    targetId: String(user.id),
+    metadata: { role, email }
+  });
+
+  revalidatePath("/team");
+}
+
+export async function updateTeamMemberRole(formData: FormData) {
+  const session = await requireSession();
+  const workspace = await ensureWorkspace(session.user);
+  assertCanManageMembers(workspace.role);
+
+  const membershipId = z.string().uuid().parse(String(formData.get("membershipId")));
+  const role = memberRoleSchema.parse(String(formData.get("role")));
+
+  const [target] = await db
+    .select()
+    .from(memberships)
+    .where(and(
+      eq(memberships.id, membershipId),
+      eq(memberships.organizationId, workspace.organizationId)
+    ))
+    .limit(1);
+
+  if (!target) throw new Error("Membre introuvable.");
+  if (role === "owner" && workspace.role !== "owner") {
+    throw new Error("Seul un propriétaire peut nommer un autre propriétaire.");
+  }
+
+  if (target.role === "owner" && role !== "owner") {
+    const owners = await pool.query(
+      "SELECT count(*)::int AS count FROM memberships WHERE organization_id = $1 AND role = 'owner'",
+      [workspace.organizationId]
+    );
+    if (Number(owners.rows[0]?.count || 0) <= 1) {
+      throw new Error("Impossible de rétrograder le dernier propriétaire.");
+    }
+  }
+
+  await db
+    .update(memberships)
+    .set({ role })
+    .where(eq(memberships.id, membershipId));
+
+  await audit({
+    organizationId: workspace.organizationId,
+    userId: session.user.id,
+    action: "membership.role.updated",
+    targetType: "membership",
+    targetId: membershipId,
+    metadata: { role }
+  });
+
+  revalidatePath("/team");
+}
+
+export async function removeTeamMember(formData: FormData) {
+  const session = await requireSession();
+  const workspace = await ensureWorkspace(session.user);
+  assertCanManageMembers(workspace.role);
+
+  const membershipId = z.string().uuid().parse(String(formData.get("membershipId")));
+
+  const [target] = await db
+    .select()
+    .from(memberships)
+    .where(and(
+      eq(memberships.id, membershipId),
+      eq(memberships.organizationId, workspace.organizationId)
+    ))
+    .limit(1);
+
+  if (!target) throw new Error("Membre introuvable.");
+
+  if (target.role === "owner") {
+    const owners = await pool.query(
+      "SELECT count(*)::int AS count FROM memberships WHERE organization_id = $1 AND role = 'owner'",
+      [workspace.organizationId]
+    );
+    if (Number(owners.rows[0]?.count || 0) <= 1) {
+      throw new Error("Impossible de retirer le dernier propriétaire.");
+    }
+  }
+
+  await db.delete(memberships).where(eq(memberships.id, membershipId));
+
+  await audit({
+    organizationId: workspace.organizationId,
+    userId: session.user.id,
+    action: "membership.removed",
+    targetType: "membership",
+    targetId: membershipId,
+    metadata: { removedUserId: target.userId }
+  });
+
+  revalidatePath("/team");
 }
