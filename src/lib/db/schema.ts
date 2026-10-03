@@ -179,3 +179,17 @@ export const apiKeys = pgTable("api_keys", {
 }, (t) => [
   index("api_keys_org_idx").on(t.organizationId, t.createdAt)
 ]);
+
+
+export const dryingEvents = pgTable("drying_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  spoolId: uuid("spool_id").notNull().references(() => spools.id, { onDelete: "cascade" }),
+  userId: text("user_id"),
+  temperatureC: integer("temperature_c").notNull(),
+  durationMinutes: integer("duration_minutes").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+}, (t) => [
+  index("drying_events_spool_idx").on(t.spoolId, t.createdAt)
+]);
