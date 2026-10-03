@@ -67,16 +67,6 @@ export async function ensureWorkspace(user: { id: string; name: string; email: s
   const activeId = cookieStore.get("filario-org")?.value;
   const selected = choices.find((workspace) => workspace.organizationId === activeId) || choices[0];
 
-  if (activeId !== selected.organizationId) {
-    cookieStore.set("filario-org", selected.organizationId, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365
-    });
-  }
-
   return selected;
 }
 
