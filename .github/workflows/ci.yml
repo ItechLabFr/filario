@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+      - "foundation/**"
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: filario
+          POSTGRES_USER: filario
+          POSTGRES_PASSWORD: filario
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U filario -d filario"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgresql://filario:filario@127.0.0.1:5432/filario
+      AUTH_SECRET: ci-secret-at-least-32-characters-long
+      FILARIO_URL: http://localhost:3000
+      PASSKEY_RP_ID: localhost
+      PASSKEY_RP_NAME: Filario
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Migrate database
+        run: npm run db:migrate
+
+      - name: Smoke test database
+        run: node scripts/smoke.mjs
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
