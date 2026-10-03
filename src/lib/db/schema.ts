@@ -6,6 +6,7 @@ import {
   integer,
   numeric,
   jsonb,
+  boolean,
   uniqueIndex,
   index
 } from "drizzle-orm/pg-core";
@@ -192,4 +193,61 @@ export const dryingEvents = pgTable("drying_events", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
 }, (t) => [
   index("drying_events_spool_idx").on(t.spoolId, t.createdAt)
+]);
+
+
+export const makerProfiles = pgTable("maker_profiles", {
+  userId: text("user_id").primaryKey(),
+  handle: text("handle").notNull().unique(),
+  displayName: text("display_name").notNull(),
+  bio: text("bio"),
+  avatarUrl: text("avatar_url"),
+  websiteUrl: text("website_url"),
+  isPublic: boolean("is_public").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+}, (t) => [
+  index("maker_profiles_public_idx").on(t.isPublic, t.handle)
+]);
+
+export const publishedModels = pgTable("published_models", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  ownerUserId: text("owner_user_id").notNull(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description"),
+  license: text("license").notNull().default("All rights reserved"),
+  visibility: text("visibility").notNull().default("private"),
+  fileName: text("file_name").notNull(),
+  fileSizeBytes: integer("file_size_bytes").notNull(),
+  storagePath: text("storage_path").notNull(),
+  sourceType: text("source_type").notNull().default("3mf"),
+  profileMetadata: jsonb("profile_metadata").notNull().default({}),
+  downloadCount: integer("download_count").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+}, (t) => [
+  index("published_models_owner_idx").on(t.ownerUserId, t.createdAt),
+  index("published_models_public_idx").on(t.visibility, t.createdAt)
+]);
+
+export const modelCollections = pgTable("model_collections", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  ownerUserId: text("owner_user_id").notNull(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  description: text("description"),
+  isPublic: boolean("is_public").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+}, (t) => [
+  uniqueIndex("model_collections_owner_slug_uq").on(t.ownerUserId, t.slug)
+]);
+
+export const modelCollectionItems = pgTable("model_collection_items", {
+  collectionId: uuid("collection_id").notNull().references(() => modelCollections.id, { onDelete: "cascade" }),
+  modelId: uuid("model_id").notNull().references(() => publishedModels.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+}, (t) => [
+  uniqueIndex("model_collection_items_pk").on(t.collectionId, t.modelId)
 ]);
