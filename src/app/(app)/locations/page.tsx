@@ -28,13 +28,16 @@ export default async function LocationsPage() {
     <>
       <div className="page-head">
         <div>
+          <div className="eyebrow">Organisation</div>
           <h1>Emplacements</h1>
-          <p>Étagères, boîtes sèches, bacs et zones de stockage.</p>
+          <p>Structurez votre atelier : étagères, dryboxes, bacs, réserves et zones de production.</p>
         </div>
+        <span className="pill accent">{rows.length} zone{rows.length > 1 ? "s" : ""}</span>
       </div>
 
       <div className="grid grid-2">
-        <section className="card">
+        <section className="card elevated">
+          <div className="eyebrow">Nouveau rangement</div>
           <h2 style={{ marginTop: 0 }}>Ajouter un emplacement</h2>
           <form action={createLocation} className="form">
             <div className="field">
@@ -49,14 +52,14 @@ export default async function LocationsPage() {
           </form>
         </section>
 
-        <section className="card">
-          <h2 style={{ marginTop: 0 }}>Stockage</h2>
+        <section>
+          <div className="section-head" style={{ marginTop: 0 }}><div><h2>Stockage</h2><p>Vos zones et le nombre de bobines qu’elles contiennent.</p></div></div>
           {rows.length === 0 ? (
             <div className="empty"><strong>Aucun emplacement.</strong>Créez votre première zone de rangement.</div>
           ) : (
             <div className="grid">
               {rows.map((row) => (
-                <div key={row.id} className="card flat" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                <div key={row.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
                   <div>
                     <strong>{row.name}</strong>
                     <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 4 }}>{row.description || "Sans description"}</div>
