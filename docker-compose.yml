@@ -18,9 +18,10 @@ services:
   updates-init:
     image: alpine:3.22
     restart: "no"
-    command: ["sh", "-c", "mkdir -p /updates/packages && chown -R 1001:1001 /updates"]
+    command: ["sh", "-c", "mkdir -p /updates/packages /models && chown -R 1001:1001 /updates /models"]
     volumes:
       - filario_updates:/updates
+      - filario_models:/models
 
   filario:
     image: filario:managed
@@ -42,10 +43,12 @@ services:
       FILARIO_CLOUD: ${FILARIO_CLOUD:-false}
       FILARIO_UPDATE_PUBLIC_KEY_B64: ${FILARIO_UPDATE_PUBLIC_KEY_B64:-}
       FILARIO_UPDATE_DIR: /var/lib/filario/updates
+      FILARIO_MODEL_DIR: /var/lib/filario/models
       NODE_ENV: production
       PORT: 3000
     volumes:
       - filario_updates:/var/lib/filario/updates
+      - filario_models:/var/lib/filario/models
     ports:
       - "${FILARIO_PORT:-3000}:3000"
     healthcheck:
@@ -75,3 +78,4 @@ services:
 volumes:
   filario_postgres_data:
   filario_updates:
+  filario_models:
