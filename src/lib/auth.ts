@@ -1,0 +1,58 @@
+import { betterAuth } from "better-auth";
+import { twoFactor } from "better-auth/plugins";
+import { passkey } from "@better-auth/passkey";
+import pg from "pg";
+
+const { Pool } = pg;
+
+const filarioUrl = process.env.FILARIO_URL ?? "http://localhost:3000";
+const hostname = new URL(filarioUrl).hostname;
+
+const globalForAuth = globalThis as unknown as {
+  filarioAuthPool?: pg.Pool;
+};
+
+const authPool =
+  globalForAuth.filarioAuthPool ??
+  new Pool({
+    connectionString:
+      process.env.DATABASE_URL ??
+      "postgresql://filario:filario@127.0.0.1:5432/filario",
+    max: 10
+  });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForAuth.filarioAuthPool = authPool;
+}
+
+export const auth = betterAuth({
+  appName: "Filario",
+  baseURL: filarioUrl,
+  secret:
+    process.env.AUTH_SECRET ??
+    "development-only-secret-please-change-this-value",
+  trustedOrigins: [filarioUrl],
+  database: authPool,
+  emailAndPassword: {
+    enabled: true,
+    minPasswordLength: 10
+  },
+  advanced: {
+    database: {
+      joins: true
+    }
+  },
+  plugins: [
+    twoFactor({
+      issuer: "Filario",
+      backupCodeOptions: {
+        amount: 10,
+        length: 10
+      }
+    }),
+    passkey({
+      rpID: process.env.PASSKEY_RP_ID || hostname,
+      rpName: process.env.PASSKEY_RP_NAME || "Filario"
+    })
+  ]
+});
