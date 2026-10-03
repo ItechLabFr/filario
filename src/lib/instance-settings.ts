@@ -70,18 +70,6 @@ export async function isRegistrationAllowed() {
   return (await getInstanceSettings()).registrationAllowed;
 }
 
-export async function claimInstanceAdmin(userId: string) {
-  if (process.env.FILARIO_CLOUD === "true") return;
-
-  await ensureSettingsRow();
-  await pool.query(
-    `UPDATE filario_instance_settings
-     SET admin_user_id = $1, updated_at = now()
-     WHERE id = 1 AND admin_user_id IS NULL`,
-    [userId]
-  );
-}
-
 export async function isInstanceAdmin(userId: string) {
   if (process.env.FILARIO_CLOUD === "true") return false;
   const settings = await getInstanceSettings();
