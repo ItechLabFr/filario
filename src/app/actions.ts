@@ -74,6 +74,12 @@ export async function createSpool(formData: FormData) {
       initialWeightG: parsed.initialWeightG,
       remainingWeightG: parsed.remainingWeightG,
       diameterMm: String(parsed.diameterMm),
+      spoolWeightG: nullableInt(formData.get("spoolWeightG")),
+      densityGCm3: formData.get("densityGCm3")
+        ? String(Number(formData.get("densityGCm3")))
+        : null,
+      externalSource: String(formData.get("externalSource") ?? "").trim() || null,
+      externalId: String(formData.get("externalId") ?? "").trim() || null,
       locationId: parsed.locationId,
       nozzleMinC: nullableInt(formData.get("nozzleMinC")),
       nozzleMaxC: nullableInt(formData.get("nozzleMaxC")),
