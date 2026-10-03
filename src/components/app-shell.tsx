@@ -26,6 +26,7 @@ export function AppShell({
           <Link href="/inventory">Bobines</Link>
           <Link href="/locations">Emplacements</Link>
           <Link href="/printers">Imprimantes</Link>
+          <Link href="/jobs">Impressions</Link>
 
           <div className="nav-label">Compte</div>
           <Link href="/settings/security">Sécurité</Link>
