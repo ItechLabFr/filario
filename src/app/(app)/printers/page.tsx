@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { createPrinter } from "@/app/actions";
+import { ProductVisual } from "@/components/product-visual";
 import { db } from "@/lib/db";
 import { printers } from "@/lib/db/schema";
 import { requireSession } from "@/lib/session";
@@ -21,18 +22,24 @@ export default async function PrintersPage() {
     <>
       <div className="page-head">
         <div>
+          <div className="eyebrow">Parc machines</div>
           <h1>Imprimantes</h1>
-          <p>Associez vos machines aux bobines et préparez les futures intégrations Klipper, OctoPrint et constructeurs.</p>
+          <p>Une vue claire de vos machines, pensée pour devenir le centre de contrôle de l’atelier.</p>
         </div>
       </div>
 
-      <div className="grid grid-2">
-        <section className="card">
+      <div className="printer-layout">
+        <section className="card elevated">
+          <div className="eyebrow">Nouvelle machine</div>
           <h2 style={{ marginTop: 0 }}>Ajouter une imprimante</h2>
-          <form action={createPrinter} className="form">
+          <p style={{ color: "var(--muted)", lineHeight: 1.6, marginTop: -6 }}>
+            Enregistrez la machine maintenant ; les intégrations réseau pourront être ajoutées ensuite.
+          </p>
+
+          <form action={createPrinter} className="form" style={{ marginTop: 18 }}>
             <div className="field">
               <label>Nom *</label>
-              <input className="input" name="name" placeholder="Bambu X1C" required />
+              <input className="input" name="name" placeholder="X1C Atelier" required />
             </div>
             <div className="form-row">
               <div className="field">
@@ -44,28 +51,49 @@ export default async function PrintersPage() {
                 <input className="input" name="model" placeholder="X1 Carbon" />
               </div>
             </div>
-            <button className="button primary" type="submit">Ajouter</button>
+            <button className="button primary" type="submit">+ Ajouter la machine</button>
           </form>
         </section>
 
-        <section className="card">
-          <h2 style={{ marginTop: 0 }}>Machines</h2>
+        <section>
+          <div className="section-head" style={{ marginTop: 0 }}>
+            <div>
+              <h2>Votre parc</h2>
+              <p>{rows.length} machine{rows.length > 1 ? "s" : ""} enregistrée{rows.length > 1 ? "s" : ""}.</p>
+            </div>
+            {rows.length > 0 && <span className="pill accent">{rows.length} active{rows.length > 1 ? "s" : ""}</span>}
+          </div>
+
           {rows.length === 0 ? (
-            <div className="empty"><strong>Aucune imprimante.</strong>Ajoutez une machine à votre atelier.</div>
+            <div className="empty">
+              <strong>Aucune imprimante.</strong>
+              Ajoutez une machine à votre atelier pour l’associer à vos impressions et bobines.
+            </div>
           ) : (
-            <div className="grid">
+            <div className="printer-grid">
               {rows.map((printer) => (
-                <div key={printer.id} className="card flat">
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                    <div>
-                      <strong>{printer.name}</strong>
-                      <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 4 }}>
-                        {[printer.manufacturer, printer.model].filter(Boolean).join(" · ") || "Machine personnalisée"}
+                <article key={printer.id} className="printer-card">
+                  <ProductVisual
+                    kind="printer"
+                    brand={printer.manufacturer || "Imprimante 3D"}
+                    name={printer.model || printer.name}
+                  />
+                  <div className="printer-card-body">
+                    <div className="printer-card-head">
+                      <div>
+                        <h3>{printer.name}</h3>
+                        <p>
+                          {[printer.manufacturer, printer.model].filter(Boolean).join(" · ") || "Machine personnalisée"}
+                        </p>
                       </div>
+                      <span className="pill accent">{printer.status}</span>
                     </div>
-                    <span className="pill">{printer.status}</span>
+                    <div className="machine-status">
+                      <i />
+                      Prête pour le suivi Filario
+                    </div>
                   </div>
-                </div>
+                </article>
               ))}
             </div>
           )}
