@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProductVisual } from "@/components/product-visual";
 import { and, desc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { archiveSpool, logDrying, setSpoolWeight } from "@/app/actions";
@@ -46,19 +47,25 @@ export default async function SpoolPage({ params }: { params: Promise<{ id: stri
     <>
       <div className="page-head">
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
-            <span className="spool-color" style={{ background: s.colorHex || "#808080" }} />
-            <div>
-              <h1 style={{ marginBottom: 3 }}>{s.manufacturer} {s.productName}</h1>
-              <p>{s.material} · {s.colorName || "Couleur non renseignée"} · {s.diameterMm} mm</p>
-            </div>
-          </div>
+          <div className="eyebrow">Fiche bobine</div>
+          <h1>{s.productName}</h1>
+          <p>{s.manufacturer} · {s.material} · {s.colorName || "Couleur non renseignée"} · {s.diameterMm} mm</p>
         </div>
-        <Link className="button" href="/inventory">Retour</Link>
+        <div className="page-actions">
+          <Link className="button" href="/inventory">← Retour</Link>
+        </div>
       </div>
 
       <div className="spool-hero" style={{ marginBottom: 18 }}>
-        <section className="card">
+        <section className="card elevated">
+          <ProductVisual
+            kind="filament"
+            brand={s.manufacturer}
+            name={s.productName}
+            color={s.colorHex}
+            compact
+          />
+          <div style={{ height: 18 }} />
           <div className="grid grid-3" style={{ marginBottom: 20 }}>
             <div>
               <div className="stat-label">Restant</div>
@@ -98,7 +105,7 @@ export default async function SpoolPage({ params }: { params: Promise<{ id: stri
           </form>
         </section>
 
-        <aside className="card qr-panel">
+        <aside className="card qr-panel elevated">
           <strong>QR de la bobine</strong>
           <img src={`/api/qr/${s.publicId}`} alt="QR code de la bobine" style={{ marginTop: 15 }} />
           <small style={{ color: "var(--muted)", marginTop: 10 }}>ID : {s.publicId}</small>
