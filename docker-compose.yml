@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: filario
+      POSTGRES_USER: filario
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-filario}
+    volumes:
+      - filario_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U filario -d filario"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  filario:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      FILARIO_URL: ${FILARIO_URL:-http://localhost:3000}
+      AUTH_SECRET: ${AUTH_SECRET:-change-me-with-a-long-random-secret}
+      DATABASE_URL: postgresql://filario:${POSTGRES_PASSWORD:-filario}@postgres:5432/filario
+      PASSKEY_RP_ID: ${PASSKEY_RP_ID:-}
+      PASSKEY_RP_NAME: ${PASSKEY_RP_NAME:-Filario}
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "${FILARIO_PORT:-3000}:3000"
+
+volumes:
+  filario_postgres_data:
