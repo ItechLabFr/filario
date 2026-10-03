@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="./assets/brand/filario-github-banner.svg" alt="Filario — Gérez votre filament. Gardez le contrôle." width="100%">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/brand/filario-logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="./assets/brand/filario-logo-light.png">
+    <img src="./assets/brand/filario-logo-light.png" alt="Filario" width="620">
+  </picture>
 </p>
 
 <p align="center">
@@ -138,7 +142,7 @@ Filario vise une interface simple, rapide, premium, lisible en mode clair et som
 Les ressources de marque sont disponibles dans `assets/brand`.
 
 <p align="center">
-  <img src="./assets/brand/filario-logo-light.svg" alt="Filario light logo" width="320">
+  <img src="./assets/brand/filario-logo-light.png" alt="Filario light logo" width="320">
 </p>
 
 ## Documentation
