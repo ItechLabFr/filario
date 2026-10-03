@@ -1,0 +1,8 @@
+FROM docker:28-cli
+
+RUN apk add --no-cache jq docker-cli-compose
+
+COPY scripts/updater.sh /usr/local/bin/filario-updater
+RUN chmod +x /usr/local/bin/filario-updater
+
+ENTRYPOINT ["/usr/local/bin/filario-updater"]
