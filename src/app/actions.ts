@@ -9,6 +9,7 @@ import { z } from "zod";
 import { db, pool } from "@/lib/db";
 import {
   locations,
+  memberships,
   printers,
   dryingEvents,
   printJobs,
