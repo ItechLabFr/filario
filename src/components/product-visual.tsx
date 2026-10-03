@@ -4,14 +4,14 @@ const printerPhotos = [
   "https://unsplash.com/photos/CelpKcyAOsQ/download?force=true&w=1400",
   "https://unsplash.com/photos/IBffrp08OIo/download?force=true&w=1400",
   "https://unsplash.com/photos/j6JPxXcVHsY/download?force=true&w=1400",
-  "https://unsplash.com/photos/Qu9u-U26JT8/download?force=true&w=1400"
+  "https://unsplash.com/photos/FED1QYdR1qI/download?force=true&w=1400"
 ];
 
 const filamentPhotos = [
   "https://unsplash.com/photos/MzLDrWp3NYc/download?force=true&w=1200",
-  "https://unsplash.com/photos/lNl46kaPG6o/download?force=true&w=1200",
-  "https://unsplash.com/photos/dP2YcWgGYeQ/download?force=true&w=1200",
-  "https://unsplash.com/photos/ib5FkwAKkLE/download?force=true&w=1200"
+  "https://unsplash.com/photos/CelpKcyAOsQ/download?force=true&w=1200",
+  "https://unsplash.com/photos/IBffrp08OIo/download?force=true&w=1200",
+  "https://unsplash.com/photos/j6JPxXcVHsY/download?force=true&w=1200"
 ];
 
 function stableIndex(value: string, length: number) {
