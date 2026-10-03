@@ -11,6 +11,7 @@ const requiredTables = [
   "locations",
   "spools",
   "spool_events",
+  "drying_events",
   "printers",
   "api_keys",
   "filario_migrations"
