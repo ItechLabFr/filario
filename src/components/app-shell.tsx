@@ -34,6 +34,10 @@ export function AppShell({
           <Link href="/jobs">Impressions</Link>
           <Link href="/labels">Étiquettes</Link>
 
+          <div className="nav-label">Créer</div>
+          <Link href="/library">Bibliothèque</Link>
+          <Link href="/discover">Discover</Link>
+
           <div className="nav-label">Compte</div>
           <Link href="/team">Équipe</Link>
           <Link href="/settings/security">Sécurité</Link>
