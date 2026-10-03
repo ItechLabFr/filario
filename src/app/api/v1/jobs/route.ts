@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { authenticateApiRequest, apiUnauthorized } from "@/lib/api-auth";
 import { db } from "@/lib/db";
@@ -46,13 +46,19 @@ export async function POST(request: Request) {
 
   if (payload.printerId) {
     const [printer] = await db.select({ id: printers.id }).from(printers)
-      .where(eq(printers.id, payload.printerId)).limit(1);
+      .where(and(
+        eq(printers.id, payload.printerId),
+        eq(printers.organizationId, auth.organizationId)
+      )).limit(1);
     if (!printer) return Response.json({ error: "printer_not_found" }, { status: 400 });
   }
 
   if (payload.spoolId) {
     const [spool] = await db.select({ id: spools.id }).from(spools)
-      .where(eq(spools.id, payload.spoolId)).limit(1);
+      .where(and(
+        eq(spools.id, payload.spoolId),
+        eq(spools.organizationId, auth.organizationId)
+      )).limit(1);
     if (!spool) return Response.json({ error: "spool_not_found" }, { status: 400 });
   }
 
