@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createPrinter } from "@/app/actions";
 import { BambuPrinterCard } from "@/components/bambu-printer-card";
 import { ProductVisual } from "@/components/product-visual";
+import { PrinterDeleteButton } from "@/components/printer-delete-button";
 import { pool } from "@/lib/db";
 import { requireSession } from "@/lib/session";
 import { ensureWorkspace } from "@/lib/workspace";
@@ -19,6 +20,9 @@ type PrinterRow = {
   telemetry: Record<string, unknown> | null;
   telemetry_updated_at: string | null;
   bambu_online: boolean | null;
+  camera_host: string | null;
+  camera_enabled: boolean | null;
+  camera_last_error: string | null;
 };
 
 function statusText(status: string) {
@@ -44,10 +48,13 @@ export default async function PrintersPage() {
        p.status,
        d.telemetry,
        d.telemetry_updated_at,
-       d.online AS bambu_online
+       d.online AS bambu_online,
+       d.camera_host,
+       d.camera_enabled,
+       d.camera_last_error
      FROM printers p
      LEFT JOIN LATERAL (
-       SELECT telemetry, telemetry_updated_at, online
+       SELECT telemetry, telemetry_updated_at, online, camera_host, camera_enabled, camera_last_error
        FROM bambu_devices
        WHERE printer_id = p.id
        ORDER BY updated_at DESC
@@ -133,6 +140,11 @@ export default async function PrintersPage() {
                 initialTelemetry={printer.telemetry || {}}
                 initialTelemetryUpdatedAt={printer.telemetry_updated_at ? new Date(printer.telemetry_updated_at).toISOString() : null}
                 initialOnline={Boolean(printer.bambu_online)}
+                camera={{
+                  enabled: Boolean(printer.camera_enabled),
+                  host: printer.camera_host,
+                  lastError: printer.camera_last_error
+                }}
               />
             ) : (
               <article key={printer.id} className="machine-card">
@@ -158,6 +170,10 @@ export default async function PrintersPage() {
                       <span className="source-dot" />
                       Manuelle
                     </div>
+                    <PrinterDeleteButton
+                      printerId={printer.id}
+                      printerName={printer.name}
+                    />
                   </div>
                 </div>
               </article>
