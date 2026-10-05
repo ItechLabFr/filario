@@ -264,6 +264,7 @@ export const bambuAccounts = pgTable("bambu_accounts", {
   tokenCiphertext: text("token_ciphertext").notNull(),
   tokenIv: text("token_iv").notNull(),
   tokenTag: text("token_tag").notNull(),
+  cloudUserId: text("cloud_user_id"),
   tokenExpiresAt: timestamp("token_expires_at", { withTimezone: true }),
   status: text("status").notNull().default("connected"),
   lastError: text("last_error"),
@@ -285,6 +286,8 @@ export const bambuDevices = pgTable("bambu_devices", {
   modelName: text("model_name"),
   online: boolean("online").notNull().default(false),
   rawData: jsonb("raw_data").notNull().default({}),
+  telemetry: jsonb("telemetry").notNull().default({}),
+  telemetryUpdatedAt: timestamp("telemetry_updated_at", { withTimezone: true }),
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()

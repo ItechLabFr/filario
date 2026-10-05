@@ -55,4 +55,16 @@ const version = await pool.query(
 );
 console.log("Filario database smoke test OK:", version.rows[0]?.name || "no business migration");
 
+
+const bambuTelemetryColumns = await pool.query(
+  `select column_name
+   from information_schema.columns
+   where table_schema = 'public'
+     and table_name = 'bambu_devices'
+     and column_name in ('telemetry', 'telemetry_updated_at')`
+);
+if (bambuTelemetryColumns.rowCount !== 2) {
+  throw new Error("Missing Bambu telemetry columns");
+}
+
 await pool.end();

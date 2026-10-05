@@ -42,3 +42,59 @@ températures, AMS, calibration) restent volontairement désactivées dans Filar
 
 Pour une intégration commerciale durable, la voie cible reste l'intégration partenaire officielle
 Bambu Lab.
+
+# Télémétrie Bambu Cloud
+
+Filario 0.2.1 ajoute un worker MQTT dédié pour les comptes Bambu Cloud connectés.
+
+## Architecture
+
+Le conteneur `bambu-worker` :
+
+1. charge les comptes Bambu connectés depuis PostgreSQL ;
+2. déchiffre le token avec `AUTH_SECRET` ;
+3. récupère l'identifiant utilisateur cloud Bambu ;
+4. ouvre une connexion TLS au broker MQTT cloud ;
+5. s'abonne uniquement à `device/<serial>/report` pour chaque imprimante ;
+6. demande un snapshot `pushall` à la connexion puis au maximum toutes les 5 minutes ;
+7. fusionne les mises à jour différentielles reçues ;
+8. persiste la télémétrie dans `bambu_devices.telemetry`.
+
+Le `pushall` ne modifie pas la machine : il demande uniquement un snapshot complet de son état.
+
+## Données affichées
+
+Selon le modèle et le firmware :
+
+- température buse et cible ;
+- température plateau et cible ;
+- température chambre ;
+- état d'impression ;
+- progression ;
+- temps restant (minutes) ;
+- couche actuelle / total ;
+- nom du job ;
+- signal Wi-Fi ;
+- AMS, matière, couleur et pourcentage restant.
+
+Les imprimantes P1/A1 peuvent envoyer des messages MQTT partiels. Filario conserve donc le dernier état
+complet et fusionne chaque delta avant de l'afficher.
+
+## Fréquence
+
+Les rapports Bambu peuvent arriver plusieurs fois par seconde pendant une impression. Filario regroupe
+les écritures et persiste au maximum environ une fois toutes les 1,2 seconde par machine.
+
+La page Imprimantes interroge l'API Filario toutes les 4 secondes lorsque l'onglet est visible.
+
+## Dépannage
+
+Vérifier le worker :
+
+```bash
+docker compose ps bambu-worker
+docker compose logs --tail=100 bambu-worker
+```
+
+Après une nouvelle connexion Bambu, le worker détecte automatiquement le compte et les machines sans
+redémarrage manuel.

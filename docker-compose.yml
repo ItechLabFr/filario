@@ -58,6 +58,18 @@ services:
       start_period: 30s
       retries: 5
 
+  bambu-worker:
+    image: filario:managed
+    restart: unless-stopped
+    depends_on:
+      filario:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://filario:${POSTGRES_PASSWORD:-filario}@postgres:5432/filario
+      AUTH_SECRET: ${AUTH_SECRET:-change-me-with-a-long-random-secret}
+      NODE_ENV: production
+    command: ["node", "scripts/bambu-cloud-worker.mjs"]
+
   updater:
     build:
       context: .

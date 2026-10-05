@@ -1,16 +1,29 @@
 import Link from "next/link";
-import { eq } from "drizzle-orm";
 import { createPrinter } from "@/app/actions";
+import { BambuPrinterCard } from "@/components/bambu-printer-card";
 import { ProductVisual } from "@/components/product-visual";
-import { db } from "@/lib/db";
-import { printers } from "@/lib/db/schema";
+import { pool } from "@/lib/db";
 import { requireSession } from "@/lib/session";
 import { ensureWorkspace } from "@/lib/workspace";
 
 export const metadata = { title: "Imprimantes" };
+export const dynamic = "force-dynamic";
+
+type PrinterRow = {
+  id: string;
+  name: string;
+  manufacturer: string | null;
+  model: string | null;
+  integration_type: string | null;
+  status: string;
+  telemetry: Record<string, unknown> | null;
+  telemetry_updated_at: string | null;
+  bambu_online: boolean | null;
+};
 
 function statusText(status: string) {
   if (status === "printing") return "Impression en cours";
+  if (status === "paused") return "En pause";
   if (status === "idle") return "Disponible";
   if (status === "offline") return "Hors ligne";
   if (status === "error") return "Attention";
@@ -21,14 +34,37 @@ export default async function PrintersPage() {
   const session = await requireSession();
   const workspace = await ensureWorkspace(session.user);
 
-  const rows = await db
-    .select()
-    .from(printers)
-    .where(eq(printers.organizationId, workspace.organizationId))
-    .orderBy(printers.name);
+  const result = await pool.query<PrinterRow>(
+    `SELECT
+       p.id,
+       p.name,
+       p.manufacturer,
+       p.model,
+       p.integration_type,
+       p.status,
+       d.telemetry,
+       d.telemetry_updated_at,
+       d.online AS bambu_online
+     FROM printers p
+     LEFT JOIN LATERAL (
+       SELECT telemetry, telemetry_updated_at, online
+       FROM bambu_devices
+       WHERE printer_id = p.id
+       ORDER BY updated_at DESC
+       LIMIT 1
+     ) d ON true
+     WHERE p.organization_id = $1
+     ORDER BY p.name`,
+    [workspace.organizationId]
+  );
 
-  const cloudCount = rows.filter((row) => row.integrationType === "bambu-cloud").length;
-  const onlineCount = rows.filter((row) => row.status !== "offline").length;
+  const rows = result.rows;
+  const cloudCount = rows.filter((row) => row.integration_type === "bambu-cloud").length;
+  const onlineCount = rows.filter((row) =>
+    row.integration_type === "bambu-cloud"
+      ? Boolean(row.bambu_online)
+      : row.status !== "offline"
+  ).length;
 
   return (
     <>
@@ -36,7 +72,7 @@ export default async function PrintersPage() {
         <div>
           <span className="kicker">Machines</span>
           <h1>Imprimantes</h1>
-          <p>Vos machines, leur connexion et leur disponibilité dans un seul écran.</p>
+          <p>Températures, impression, AMS et disponibilité remontent automatiquement pour les machines Bambu Cloud.</p>
         </div>
         <div className="page-actions">
           <Link className="button" href="/integrations">Intégrations</Link>
@@ -50,7 +86,7 @@ export default async function PrintersPage() {
           <strong>{rows.length}</strong>
         </div>
         <div className="metric-tile">
-          <span>Disponibles</span>
+          <span>En ligne</span>
           <strong>{onlineCount}</strong>
         </div>
         <div className="metric-tile">
@@ -59,17 +95,14 @@ export default async function PrintersPage() {
         </div>
       </div>
 
-      <section className="surface-panel bambu-callout">
-        <div className="bambu-callout-mark">B</div>
+      <section className="surface-panel bambu-live-info">
         <div>
-          <span className="kicker">Bambu Cloud · Beta</span>
-          <h2>Importer automatiquement vos Bambu Lab</h2>
-          <p>
-            Connectez votre compte par code e-mail. Filario ajoute les imprimantes liées à votre compte
-            sans vous demander de passer en LAN Only.
-          </p>
+          <span className="source-dot" />
+          <strong>Télémétrie Bambu Cloud</strong>
         </div>
-        <Link className="button primary" href="/integrations">Connecter Bambu</Link>
+        <p>
+          Le service Filario reste connecté au flux Bambu en arrière-plan. Les cartes se mettent à jour automatiquement.
+        </p>
       </section>
 
       <div className="section-head">
@@ -85,37 +118,50 @@ export default async function PrintersPage() {
           Connectez Bambu Cloud ou ajoutez une machine manuellement.
         </div>
       ) : (
-        <div className="machine-grid">
+        <div className="machine-grid live-machine-grid">
           {rows.map((printer) => (
-            <article key={printer.id} className="machine-card">
-              <ProductVisual
-                kind="printer"
-                brand={printer.manufacturer || "Imprimante 3D"}
-                name={printer.model || printer.name}
+            printer.integration_type === "bambu-cloud" ? (
+              <BambuPrinterCard
+                key={printer.id}
+                printer={{
+                  id: printer.id,
+                  name: printer.name,
+                  manufacturer: printer.manufacturer,
+                  model: printer.model,
+                  status: printer.status
+                }}
+                initialTelemetry={printer.telemetry || {}}
+                initialTelemetryUpdatedAt={printer.telemetry_updated_at ? new Date(printer.telemetry_updated_at).toISOString() : null}
+                initialOnline={Boolean(printer.bambu_online)}
               />
-              <div className="machine-card-body">
-                <div className="machine-card-top">
-                  <div>
-                    <span className="machine-brand">{printer.manufacturer || "Imprimante 3D"}</span>
-                    <h3>{printer.name}</h3>
-                    <p>{printer.model || "Machine personnalisée"}</p>
+            ) : (
+              <article key={printer.id} className="machine-card">
+                <ProductVisual
+                  kind="printer"
+                  brand={printer.manufacturer || "Imprimante 3D"}
+                  name={printer.model || printer.name}
+                />
+                <div className="machine-card-body">
+                  <div className="machine-card-top">
+                    <div>
+                      <span className="machine-brand">{printer.manufacturer || "Imprimante 3D"}</span>
+                      <h3>{printer.name}</h3>
+                      <p>{printer.model || "Machine personnalisée"}</p>
+                    </div>
+                    <span className={printer.status === "offline" ? "status-chip status-offline" : "status-chip status-online"}>
+                      {statusText(printer.status)}
+                    </span>
                   </div>
-                  <span className={printer.status === "offline" ? "status-chip status-offline" : "status-chip status-online"}>
-                    {statusText(printer.status)}
-                  </span>
-                </div>
 
-                <div className="machine-card-footer">
-                  <div className="machine-source">
-                    <span className="source-dot" />
-                    {printer.integrationType === "bambu-cloud" ? "Bambu Cloud" : "Manuelle"}
+                  <div className="machine-card-footer">
+                    <div className="machine-source">
+                      <span className="source-dot" />
+                      Manuelle
+                    </div>
                   </div>
-                  {printer.integrationType === "bambu-cloud" && (
-                    <span className="muted-mini">Caméra : Bambu Handy</span>
-                  )}
                 </div>
-              </div>
-            </article>
+              </article>
+            )
           ))}
         </div>
       )}
