@@ -118,7 +118,9 @@ async function loadDevices(accountId) {
   const result = await pool.query(
     `SELECT id, printer_id, dev_id, telemetry
      FROM bambu_devices
-     WHERE account_id = $1`,
+     WHERE account_id = $1
+       AND ignored = false
+       AND printer_id IS NOT NULL`,
     [accountId]
   );
   return result.rows;
