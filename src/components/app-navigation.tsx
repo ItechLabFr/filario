@@ -17,7 +17,8 @@ type IconName =
   | "api"
   | "data"
   | "system"
-  | "audit";
+  | "audit"
+  | "plug";
 
 function Icon({ name }: { name: IconName }) {
   const common = {
@@ -46,7 +47,8 @@ function Icon({ name }: { name: IconName }) {
     api: <><path d="M8 9 4 12l4 3M16 9l4 3-4 3M14 5l-4 14"/></>,
     data: <><ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5"/><path d="M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></>,
     system: <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21h-4v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H3v-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6V3h4v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1v4H21a1.7 1.7 0 0 0-1.6 1Z"/></>,
-    audit: <><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h3"/></>
+    audit: <><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h3"/></>,
+    plug: <><path d="M8 12h8"/><path d="M9 8V4M15 8V4"/><path d="M7 8h10v3a5 5 0 0 1-5 5v4"/><path d="M12 20h3"/></>
   };
 
   return <svg {...common}>{paths[name]}</svg>;
@@ -67,6 +69,7 @@ const creator = [
 ];
 
 const account = [
+  { href: "/integrations", label: "Intégrations", icon: "plug" as IconName },
   { href: "/team", label: "Équipe", icon: "team" as IconName },
   { href: "/settings/security", label: "Sécurité", icon: "shield" as IconName },
   { href: "/settings/api", label: "API", icon: "api" as IconName },
