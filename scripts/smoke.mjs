@@ -17,6 +17,8 @@ const requiredTables = [
   "filario_instance_settings",
   "maker_profiles",
   "published_models",
+  "bambu_accounts",
+  "bambu_devices",
   "filario_migrations"
 ];
 

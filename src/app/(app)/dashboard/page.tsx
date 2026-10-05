@@ -13,145 +13,159 @@ export default async function DashboardPage() {
   const session = await requireSession();
   const workspace = await ensureWorkspace(session.user);
 
-  const [spoolStats] = await db
-    .select({
+  const [[spoolStats], [printerStats], recentSpools, recentPrinters] = await Promise.all([
+    db.select({
       count: sql<number>`count(*)::int`,
       remaining: sql<number>`coalesce(sum(${spools.remainingWeightG}), 0)::int`,
       low: sql<number>`count(*) filter (where ${spools.remainingWeightG} <= 150 and ${spools.status} = 'active')::int`,
       value: sql<number>`coalesce(sum(case when ${spools.purchasePriceCents} is not null and ${spools.initialWeightG} > 0 then round(${spools.purchasePriceCents} * ${spools.remainingWeightG}::numeric / ${spools.initialWeightG}) else 0 end), 0)::int`
-    })
-    .from(spools)
-    .where(eq(spools.organizationId, workspace.organizationId));
+    }).from(spools).where(eq(spools.organizationId, workspace.organizationId)),
+    db.select({
+      count: sql<number>`count(*)::int`,
+      online: sql<number>`count(*) filter (where ${printers.status} <> 'offline')::int`,
+      cloud: sql<number>`count(*) filter (where ${printers.integrationType} = 'bambu-cloud')::int`
+    }).from(printers).where(eq(printers.organizationId, workspace.organizationId)),
+    db.select().from(spools)
+      .where(eq(spools.organizationId, workspace.organizationId))
+      .orderBy(sql`${spools.updatedAt} desc`).limit(4),
+    db.select().from(printers)
+      .where(eq(printers.organizationId, workspace.organizationId))
+      .orderBy(sql`${printers.updatedAt} desc`).limit(4)
+  ]);
 
-  const [printerStats] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(printers)
-    .where(eq(printers.organizationId, workspace.organizationId));
-
-  const recent = await db
-    .select()
-    .from(spools)
-    .where(eq(spools.organizationId, workspace.organizationId))
-    .orderBy(sql`${spools.updatedAt} desc`)
-    .limit(6);
-
-  const firstName = session.user.name?.split(" ")[0] || "";
   const total = spoolStats?.count ?? 0;
   const low = spoolStats?.low ?? 0;
 
   return (
     <>
-      <section className="hero-panel">
-        <div className="hero-copy">
-          <div className="eyebrow">Atelier en temps réel</div>
-          <h1>{firstName ? `Bonjour ${firstName}.` : "Bonjour."}<br />Votre filament, enfin clair.</h1>
-          <p>
-            Une vue rapide de votre stock, de vos machines et de ce qui demande votre attention.
-            Ajoutez une bobine, retrouvez-la en quelques secondes et gardez votre atelier propre.
-          </p>
-          <div className="hero-actions">
-            <Link className="button primary" href="/inventory/new">+ Ajouter une bobine</Link>
-            <Link className="button" href="/inventory">Voir le stock</Link>
-            <Link className="button ghost" href="/printers">Mes imprimantes</Link>
-          </div>
-        </div>
-
-        <div className="hero-glance">
-          <div className="glance-item accent">
-            <span>Stock total</span>
-            <strong>{grams(spoolStats?.remaining ?? 0)}</strong>
-          </div>
-          <div className="glance-item">
-            <span>Bobines actives</span>
-            <strong>{total}</strong>
-          </div>
-          <div className="glance-item">
-            <span>À surveiller</span>
-            <strong>{low}</strong>
-          </div>
-          <div className="glance-item">
-            <span>Machines</span>
-            <strong>{printerStats?.count ?? 0}</strong>
-          </div>
-        </div>
-      </section>
-
-      <div className="grid grid-4">
-        <div className="card stat-card">
-          <div className="stat-label">Bobines enregistrées</div>
-          <div>
-            <div className="stat-value">{total}</div>
-            <div className="stat-sub">toutes matières confondues</div>
-          </div>
-        </div>
-        <div className="card stat-card">
-          <div className="stat-label">Filament restant</div>
-          <div>
-            <div className="stat-value">{grams(spoolStats?.remaining ?? 0)}</div>
-            <div className="stat-sub">poids disponible dans l'atelier</div>
-          </div>
-        </div>
-        <div className="card stat-card">
-          <div className="stat-label">Stock faible</div>
-          <div>
-            <div className="stat-value">{low}</div>
-            <div className="stat-sub">bobines à 150 g ou moins</div>
-          </div>
-        </div>
-        <div className="card stat-card">
-          <div className="stat-label">Valeur restante</div>
-          <div>
-            <div className="stat-value">{money(spoolStats?.value ?? 0)}</div>
-            <div className="stat-sub">estimation de la matière disponible</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="section-head">
+      <div className="page-head pro-page-head">
         <div>
-          <h2>Dernières bobines</h2>
-          <p>Les références récemment manipulées dans votre atelier.</p>
+          <span className="kicker">Atelier</span>
+          <h1>{workspace.organizationName}</h1>
+          <p>État du stock et des machines. Les actions importantes restent accessibles en un clic.</p>
         </div>
-        <Link className="button small" href="/inventory">Tout voir</Link>
+        <div className="page-actions">
+          <Link className="button" href="/integrations">Intégrations</Link>
+          <Link className="button primary" href="/inventory/new">Ajouter une bobine</Link>
+        </div>
       </div>
 
-      {recent.length === 0 ? (
-        <div className="empty">
-          <strong>Votre inventaire est vide.</strong>
-          Ajoutez votre première bobine pour commencer à construire votre atelier numérique.
+      <div className="overview-grid">
+        <div className="metric-tile primary-metric">
+          <span>Filament disponible</span>
+          <strong>{grams(spoolStats?.remaining ?? 0)}</strong>
+          <small>{total} bobine{total > 1 ? "s" : ""}</small>
         </div>
-      ) : (
-        <div className="spool-grid">
-          {recent.map((spool) => {
-            const pct = spool.initialWeightG ? Math.round((spool.remainingWeightG / spool.initialWeightG) * 100) : 0;
-            return (
-              <Link key={spool.id} className="spool-card" href={`/inventory/${spool.id}`}>
-                <ProductVisual
-                  kind="filament"
-                  brand={spool.manufacturer}
-                  name={spool.productName}
-                  color={spool.colorHex}
-                />
-                <div className="spool-card-body">
-                  <div className="spool-card-head">
-                    <div className="spool-card-title">
+        <div className="metric-tile">
+          <span>Stock faible</span>
+          <strong>{low}</strong>
+          <small>≤ 150 g</small>
+        </div>
+        <div className="metric-tile">
+          <span>Machines disponibles</span>
+          <strong>{printerStats?.online ?? 0}/{printerStats?.count ?? 0}</strong>
+          <small>{printerStats?.cloud ?? 0} via Bambu Cloud</small>
+        </div>
+        <div className="metric-tile">
+          <span>Valeur restante</span>
+          <strong>{money(spoolStats?.value ?? 0)}</strong>
+          <small>estimation stock</small>
+        </div>
+      </div>
+
+      <div className="dashboard-columns">
+        <section>
+          <div className="section-head">
+            <div>
+              <h2>Machines</h2>
+              <p>Dernières imprimantes synchronisées.</p>
+            </div>
+            <Link className="button small" href="/printers">Toutes</Link>
+          </div>
+
+          {recentPrinters.length === 0 ? (
+            <div className="empty pro-empty">
+              <strong>Aucune machine.</strong>
+              Connectez Bambu Cloud ou ajoutez une imprimante.
+            </div>
+          ) : (
+            <div className="compact-machine-list">
+              {recentPrinters.map((printer) => (
+                <Link className="compact-machine-row" href="/printers" key={printer.id}>
+                  <div className="compact-machine-art">
+                    <ProductVisual
+                      kind="printer"
+                      brand={printer.manufacturer || "Imprimante 3D"}
+                      name={printer.model || printer.name}
+                      compact
+                    />
+                  </div>
+                  <div className="compact-machine-copy">
+                    <strong>{printer.name}</strong>
+                    <span>{printer.model || printer.manufacturer || "Machine"}</span>
+                  </div>
+                  <span className={printer.status === "offline" ? "status-chip status-offline" : "status-chip status-online"}>
+                    {printer.status === "offline" ? "Hors ligne" : "Disponible"}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section>
+          <div className="section-head">
+            <div>
+              <h2>Bobines récentes</h2>
+              <p>Dernières références mises à jour.</p>
+            </div>
+            <Link className="button small" href="/inventory">Stock</Link>
+          </div>
+
+          {recentSpools.length === 0 ? (
+            <div className="empty pro-empty">
+              <strong>Inventaire vide.</strong>
+              Ajoutez une première bobine.
+            </div>
+          ) : (
+            <div className="compact-spool-list">
+              {recentSpools.map((spool) => {
+                const pct = spool.initialWeightG
+                  ? Math.max(0, Math.min(100, Math.round((spool.remainingWeightG / spool.initialWeightG) * 100)))
+                  : 0;
+                return (
+                  <Link className="compact-spool-row" href={`/inventory/${spool.id}`} key={spool.id}>
+                    <span className="spool-swatch" style={{ background: spool.colorHex || "#7d8a92" }} />
+                    <div className="compact-spool-copy">
                       <strong>{spool.productName}</strong>
-                      <span>{spool.manufacturer} · {spool.colorName || "Couleur non renseignée"}</span>
+                      <span>{spool.manufacturer} · {spool.material}</span>
                     </div>
-                    <span className="pill accent">{spool.material}</span>
-                  </div>
-                  <div className="spool-card-weight">
-                    <div><strong>{grams(spool.remainingWeightG)}</strong><span> restant</span></div>
-                    <span>{Math.max(0, Math.min(100, pct))}%</span>
-                  </div>
-                  <div className="progress" style={{ marginTop: 8 }}>
-                    <span style={{ width: `${Math.max(0, Math.min(100, pct))}%` }} />
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+                    <div className="compact-spool-weight">
+                      <strong>{grams(spool.remainingWeightG)}</strong>
+                      <span>{pct}%</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {(low > 0 || (printerStats?.cloud ?? 0) === 0) && (
+        <section className="attention-panel">
+          <span className="attention-dot" />
+          <div>
+            <strong>À faire</strong>
+            <p>
+              {low > 0 ? `${low} bobine(s) sont sous 150 g. ` : ""}
+              {(printerStats?.cloud ?? 0) === 0 ? "Bambu Cloud n’est pas encore connecté." : ""}
+            </p>
+          </div>
+          {(printerStats?.cloud ?? 0) === 0 && (
+            <Link className="button small" href="/integrations">Connecter</Link>
+          )}
+        </section>
       )}
     </>
   );
