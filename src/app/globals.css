@@ -1347,3 +1347,213 @@ body {
   .connection-row .button:nth-last-child(2),
   .connection-row .button:last-child { grid-column:1/-1; }
 }
+
+
+/* Bambu live telemetry */
+.bambu-live-info {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:11px 13px;
+  margin-bottom:4px;
+}
+.bambu-live-info > div {
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.bambu-live-info strong { font-size:11px; }
+.bambu-live-info p {
+  margin:0;
+  color:var(--muted);
+  font-size:10px;
+}
+.live-machine-grid {
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.live-machine-card {
+  grid-template-columns:190px minmax(0,1fr);
+  min-height:310px;
+}
+.live-machine-card > .product-visual {
+  min-height:310px;
+}
+.live-machine-card .machine-card-body {
+  gap:14px;
+}
+.telemetry-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:6px;
+}
+.telemetry-item {
+  min-width:0;
+  padding:9px 10px;
+  border:1px solid var(--border);
+  border-radius:7px;
+  background:var(--bg-elevated);
+}
+.telemetry-item span,
+.telemetry-item strong {
+  display:block;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.telemetry-item span {
+  color:var(--muted);
+  font-size:8px;
+  font-weight:750;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.telemetry-item strong {
+  margin-top:5px;
+  font-size:12px;
+  letter-spacing:-.01em;
+}
+.live-job {
+  padding:11px;
+  border:1px solid color-mix(in srgb,var(--accent) 22%,var(--border));
+  border-radius:8px;
+  background:color-mix(in srgb,var(--accent) 4%,var(--panel));
+}
+.live-job-head {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.live-job-head span,
+.live-job-head strong {
+  display:block;
+}
+.live-job-head span {
+  color:var(--muted);
+  font-size:8px;
+  font-weight:750;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.live-job-head div > strong {
+  max-width:260px;
+  margin-top:3px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:11px;
+}
+.live-job-head > strong {
+  font-size:15px;
+  color:var(--accent-strong);
+}
+.live-progress { margin-top:9px; }
+.live-job-meta {
+  display:flex;
+  gap:12px;
+  margin-top:7px;
+  color:var(--muted);
+  font-size:9px;
+}
+.ams-strip {
+  padding-top:1px;
+}
+.ams-strip-title {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:6px;
+}
+.ams-strip-title > span {
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.08em;
+}
+.ams-strip-title small {
+  color:var(--muted);
+  font-size:8px;
+}
+.ams-trays {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:5px;
+}
+.ams-tray {
+  display:grid;
+  grid-template-columns:9px minmax(0,1fr) auto;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+  padding:7px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  background:var(--bg-elevated);
+}
+.ams-tray > i {
+  width:9px;
+  height:25px;
+  border-radius:3px;
+  border:1px solid color-mix(in srgb,var(--text) 12%,transparent);
+}
+.ams-tray > div {
+  min-width:0;
+}
+.ams-tray strong,
+.ams-tray span {
+  display:block;
+}
+.ams-tray strong {
+  font-size:9px;
+}
+.ams-tray span {
+  margin-top:2px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--muted);
+  font-size:8px;
+}
+.ams-tray small {
+  color:var(--muted);
+  font-size:8px;
+}
+.source-dot.offline {
+  background:var(--muted);
+}
+@media(max-width:1180px) {
+  .live-machine-grid {
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:760px) {
+  .bambu-live-info {
+    align-items:flex-start;
+    flex-direction:column;
+    gap:4px;
+  }
+  .live-machine-card {
+    display:block;
+    min-height:0;
+  }
+  .live-machine-card > .product-visual {
+    min-height:170px;
+    height:170px;
+  }
+  .live-machine-card .product-visual-copy {
+    display:block;
+  }
+  .telemetry-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .telemetry-item {
+    padding:8px;
+  }
+  .ams-trays {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .live-job-head div > strong {
+    max-width:190px;
+  }
+}
