@@ -131,7 +131,7 @@ export default async function PrintersPage() {
                   status: printer.status
                 }}
                 initialTelemetry={printer.telemetry || {}}
-                initialTelemetryUpdatedAt={printer.telemetry_updated_at}
+                initialTelemetryUpdatedAt={printer.telemetry_updated_at ? new Date(printer.telemetry_updated_at).toISOString() : null}
                 initialOnline={Boolean(printer.bambu_online)}
               />
             ) : (
