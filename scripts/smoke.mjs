@@ -67,4 +67,21 @@ if (bambuTelemetryColumns.rowCount !== 2) {
   throw new Error("Missing Bambu telemetry columns");
 }
 
+const bambuCameraColumns = await pool.query(
+  `select column_name
+   from information_schema.columns
+   where table_schema = 'public'
+     and table_name = 'bambu_devices'
+     and column_name in (
+       'ignored',
+       'access_code_ciphertext',
+       'camera_host',
+       'camera_enabled',
+       'camera_cert_fingerprint'
+     )`
+);
+if (bambuCameraColumns.rowCount !== 5) {
+  throw new Error("Missing Bambu camera columns");
+}
+
 await pool.end();
