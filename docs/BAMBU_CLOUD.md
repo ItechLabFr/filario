@@ -98,3 +98,45 @@ docker compose logs --tail=100 bambu-worker
 
 Après une nouvelle connexion Bambu, le worker détecte automatiquement le compte et les machines sans
 redémarrage manuel.
+
+## Caméra réelle (0.3.0)
+
+Filario peut afficher la caméra physique d'une imprimante Bambu sans désactiver Bambu Cloud.
+
+La configuration se fait depuis **Imprimantes** :
+
+1. ouvrir la carte de la machine ;
+2. saisir son IPv4 locale (par exemple `192.168.1.42`) ;
+3. cliquer sur **Activer la caméra**.
+
+Le navigateur ne reçoit jamais le code d'accès Bambu. Le serveur Filario utilise le code chiffré reçu
+lors de la synchronisation Bambu Cloud et renvoie uniquement une image JPEG authentifiée.
+
+Transports pris en charge :
+
+- A1 / A1 mini / P1P / P1S : serveur vidéo JPEG TLS sur TCP 6000 ;
+- X1 / X1 Carbon / X1E / P2S : RTSPS sur TCP 322 via FFmpeg ;
+- H2D / H2S : RTSPS sur TCP 322 si le Live View local est activé dans les réglages de la machine.
+
+La machine peut rester en fonctionnement Bambu Cloud normal. Sur certains firmwares H2, seul le réglage
+du Live View local doit être activé.
+
+### Sécurité caméra
+
+- seules les IPv4 privées RFC1918 sont acceptées comme cible ;
+- le code d'accès n'est jamais envoyé au navigateur ;
+- le code est chiffré au repos avec AES-256-GCM ;
+- Filario mémorise l'empreinte SHA-256 du certificat présenté par la caméra au premier accès et refuse
+  un certificat différent ensuite ;
+- les images sont servies avec `Cache-Control: private, no-store`.
+
+La caméra Cloud distante de Bambu Handy utilise TUTK / Agora P2P et n'est pas embarquée dans Filario :
+ce chemin dépend d'une pile propriétaire. Filario utilise donc la caméra réelle via le réseau local
+lorsque le serveur self-hosted peut joindre l'imprimante.
+
+## Suppression des imprimantes
+
+Supprimer une imprimante Bambu de Filario ne la dissocie pas du compte Bambu Lab. Filario marque le
+device comme ignoré, supprime la machine de l'atelier et empêche les synchronisations suivantes de la
+réimporter automatiquement.
+

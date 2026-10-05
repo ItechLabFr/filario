@@ -11,6 +11,8 @@ type BambuDevice = {
   dev_model_name?: string;
   product_name?: string;
   model_name?: string;
+  dev_access_code?: string;
+  access_code?: string;
   [key: string]: unknown;
 };
 
@@ -90,6 +92,7 @@ export async function getBambuDevices(token: string, region: BambuRegion) {
     productName: String(device.dev_product_name ?? device.product_name ?? "") || null,
     modelName: String(device.dev_model_name ?? device.model_name ?? "") || null,
     online: Boolean(device.online ?? device.dev_online ?? false),
+    accessCode: String(device.dev_access_code ?? device.access_code ?? "").trim() || null,
     raw: device
   })).filter((device: { devId: string }) => device.devId);
 }

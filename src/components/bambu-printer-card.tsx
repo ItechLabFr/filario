@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ProductVisual } from "@/components/product-visual";
+import { BambuCameraView } from "@/components/bambu-camera-view";
+import { PrinterDeleteButton } from "@/components/printer-delete-button";
 
 type Telemetry = Record<string, any>;
 
@@ -16,6 +17,11 @@ type Props = {
   initialTelemetry: Telemetry;
   initialTelemetryUpdatedAt: string | null;
   initialOnline: boolean;
+  camera: {
+    enabled: boolean;
+    host: string | null;
+    lastError: string | null;
+  };
 };
 
 function number(value: unknown) {
@@ -77,7 +83,8 @@ export function BambuPrinterCard({
   printer,
   initialTelemetry,
   initialTelemetryUpdatedAt,
-  initialOnline
+  initialOnline,
+  camera
 }: Props) {
   const [telemetry, setTelemetry] = useState<Telemetry>(initialTelemetry || {});
   const [updatedAt, setUpdatedAt] = useState<string | null>(initialTelemetryUpdatedAt);
@@ -89,9 +96,7 @@ export function BambuPrinterCard({
     async function refresh() {
       if (document.visibilityState === "hidden") return;
       try {
-        const response = await fetch(`/api/printers/${printer.id}/telemetry`, {
-          cache: "no-store"
-        });
+        const response = await fetch(`/api/printers/${printer.id}/telemetry`, { cache: "no-store" });
         if (!response.ok) return;
         const payload = await response.json();
         if (stopped) return;
@@ -99,7 +104,7 @@ export function BambuPrinterCard({
         setUpdatedAt(payload.telemetryUpdatedAt || null);
         setOnline(Boolean(payload.online));
       } catch {
-        // Keep the last known telemetry visible.
+        // Keep the last known values visible.
       }
     }
 
@@ -123,98 +128,109 @@ export function BambuPrinterCard({
   const wifi = String(print?.wifi_signal || "").trim();
 
   return (
-    <article className="machine-card live-machine-card">
-      <ProductVisual
-        kind="printer"
-        brand={printer.manufacturer || "Bambu Lab"}
-        name={printer.model || printer.name}
-      />
-
-      <div className="machine-card-body">
-        <div className="machine-card-top">
-          <div>
-            <span className="machine-brand">{printer.manufacturer || "Bambu Lab"}</span>
-            <h3>{printer.name}</h3>
-            <p>{printer.model || "Bambu Lab"}</p>
+    <article className="printer-station-card">
+      <header className="printer-station-head">
+        <div>
+          <div className="printer-station-brand">
+            <span className={online ? "source-dot" : "source-dot offline"} />
+            Bambu Lab · Cloud
           </div>
+          <h3>{printer.name}</h3>
+          <p>{printer.model || "Bambu Lab"}</p>
+        </div>
+
+        <div className="printer-station-head-actions">
           <span className={online ? "status-chip status-online" : "status-chip status-offline"}>
             {online ? stateLabel(print?.gcode_state) : "Hors ligne"}
           </span>
+          <PrinterDeleteButton printerId={printer.id} printerName={printer.name} cloud />
         </div>
+      </header>
 
-        <div className="telemetry-grid">
-          <div className="telemetry-item">
-            <span>Buse</span>
-            <strong>{temp(print?.nozzle_temper, print?.nozzle_target_temper)}</strong>
-          </div>
-          <div className="telemetry-item">
-            <span>Plateau</span>
-            <strong>{temp(print?.bed_temper, print?.bed_target_temper)}</strong>
-          </div>
-          <div className="telemetry-item">
-            <span>Chambre</span>
-            <strong>{temp(print?.chamber_temper, null)}</strong>
-          </div>
-          <div className="telemetry-item">
-            <span>Wi‑Fi</span>
-            <strong>{wifi || "—"}</strong>
-          </div>
-        </div>
+      <div className="printer-station-body">
+        <BambuCameraView
+          printerId={printer.id}
+          enabled={camera.enabled}
+          host={camera.host}
+          initialError={camera.lastError}
+        />
 
-        {printing && (
-          <div className="live-job">
+        <div className="printer-telemetry-panel">
+          <div className="telemetry-grid">
+            <div className="telemetry-item">
+              <span>Buse</span>
+              <strong>{temp(print?.nozzle_temper, print?.nozzle_target_temper)}</strong>
+            </div>
+            <div className="telemetry-item">
+              <span>Plateau</span>
+              <strong>{temp(print?.bed_temper, print?.bed_target_temper)}</strong>
+            </div>
+            <div className="telemetry-item">
+              <span>Chambre</span>
+              <strong>{temp(print?.chamber_temper, null)}</strong>
+            </div>
+            <div className="telemetry-item">
+              <span>Wi‑Fi</span>
+              <strong>{wifi || "—"}</strong>
+            </div>
+          </div>
+
+          <div className={printing ? "live-job active" : "live-job"}>
             <div className="live-job-head">
               <div>
-                <span>Impression en cours</span>
-                <strong>{jobName || "Projet Bambu"}</strong>
+                <span>{printing ? "Impression en cours" : "État machine"}</span>
+                <strong>{printing ? (jobName || "Projet Bambu") : (online ? "Prête" : "Hors ligne")}</strong>
               </div>
-              <strong>{Math.round(percent)}%</strong>
+              {printing && <strong>{Math.round(percent)}%</strong>}
             </div>
-            <div className="progress live-progress">
-              <span style={{ width: `${percent}%` }} />
-            </div>
-            <div className="live-job-meta">
-              <span>Reste {remaining(print?.mc_remaining_time)}</span>
-              {layer != null && totalLayers != null && totalLayers > 0 && (
-                <span>Couche {layer}/{totalLayers}</span>
-              )}
-            </div>
-          </div>
-        )}
 
-        {amsTrays.length > 0 && (
-          <div className="ams-strip">
-            <div className="ams-strip-title">
-              <span>AMS</span>
-              <small>{amsTrays.length} slot{amsTrays.length > 1 ? "s" : ""}</small>
-            </div>
-            <div className="ams-trays">
-              {amsTrays.map((tray) => (
-                <div className="ams-tray" key={tray.id} title={`${tray.unit} · Slot ${tray.slot} · ${tray.type}`}>
-                  <i style={{ background: tray.color }} />
-                  <div>
-                    <strong>{tray.slot}</strong>
-                    <span>{tray.type || "Vide"}</span>
-                  </div>
-                  {tray.remain != null && <small>{Math.round(tray.remain)}%</small>}
+            {printing && (
+              <>
+                <div className="progress live-progress">
+                  <span style={{ width: `${percent}%` }} />
                 </div>
-              ))}
-            </div>
+                <div className="live-job-meta">
+                  <span>Reste {remaining(print?.mc_remaining_time)}</span>
+                  {layer != null && totalLayers != null && totalLayers > 0 && (
+                    <span>Couche {layer}/{totalLayers}</span>
+                  )}
+                </div>
+              </>
+            )}
           </div>
-        )}
 
-        <div className="machine-card-footer">
-          <div className="machine-source">
-            <span className={online ? "source-dot" : "source-dot offline"} />
-            Bambu Cloud · live
+          <div className="printer-live-meta">
+            <span>Dernière donnée</span>
+            <strong>
+              {updatedAt
+                ? new Date(updatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+                : "En attente"}
+            </strong>
           </div>
-          <span className="muted-mini">
-            {updatedAt
-              ? `Données ${new Date(updatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
-              : "En attente de télémétrie…"}
-          </span>
         </div>
       </div>
+
+      {amsTrays.length > 0 && (
+        <div className="printer-ams-panel">
+          <div className="ams-strip-title">
+            <span>AMS</span>
+            <small>{amsTrays.length} slot{amsTrays.length > 1 ? "s" : ""}</small>
+          </div>
+
+          <div className="ams-trays">
+            {amsTrays.map((tray) => (
+              <div className="ams-tray" key={tray.id} title={`${tray.unit} · Slot ${tray.slot} · ${tray.type}`}>
+                <i style={{ background: tray.color }} />
+                <div>
+                  <strong>{tray.slot}</strong>
+                  <span>{tray.type || "Vide"}</span>
+                </div>
+                {tray.remain != null && <small>{Math.round(tray.remain)}%</small>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </article>
   );
 }

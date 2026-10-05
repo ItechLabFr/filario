@@ -112,9 +112,9 @@ export function DesktopNavigation({ instanceAdmin }: { instanceAdmin: boolean })
     <nav className="nav" aria-label="Navigation principale">
       <div className="nav-label">Atelier</div>
       {workshop.map((item) => <NavLink key={item.href} {...item} />)}
-      <div className="nav-label">Créer</div>
+      <div className="nav-label">Modèles</div>
       {creator.map((item) => <NavLink key={item.href} {...item} />)}
-      <div className="nav-label">Compte</div>
+      <div className="nav-label">Configuration</div>
       {account.map((item) => <NavLink key={item.href} {...item} />)}
       {instanceAdmin && <NavLink href="/settings/system" label="Système" icon="system" />}
     </nav>

@@ -30,27 +30,27 @@ export function AppShell({
     .join("");
 
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <div className="sidebar-head">
+    <div className="app-shell workshop-shell">
+      <aside className="sidebar workshop-sidebar">
+        <div className="sidebar-head workshop-sidebar-head">
           <Link href="/dashboard" className="brand" aria-label="Filario">
             <img className="light-logo" src="/brand/filario-logo-light.png" alt="Filario" />
             <img className="dark-logo" src="/brand/filario-logo-dark.png" alt="Filario" />
           </Link>
-          <span className="edition-badge">self-hosted</span>
+          <span className="edition-badge">LOCAL</span>
         </div>
 
-        <div className="workspace-card">
+        <div className="workspace-card workshop-card">
           <div className="workspace-mark">{workspace.organizationName.slice(0, 1).toUpperCase()}</div>
           <div>
-            <span>Atelier actif</span>
+            <span>Workspace</span>
             <strong>{workspace.organizationName}</strong>
           </div>
         </div>
 
         <DesktopNavigation instanceAdmin={instanceAdmin} />
 
-        <div className="sidebar-footer">
+        <div className="sidebar-footer workshop-sidebar-footer">
           {workspaces.length > 1 && (
             <form action={switchWorkspace} className="workspace-switch">
               <select className="select" name="organizationId" defaultValue={workspace.organizationId}>
@@ -60,7 +60,7 @@ export function AppShell({
                   </option>
                 ))}
               </select>
-              <button className="button small" type="submit">Changer</button>
+              <button className="button small" type="submit">OK</button>
             </form>
           )}
 
@@ -70,27 +70,39 @@ export function AppShell({
               <strong>{user.name || user.email}</strong>
               <span>{instanceAdmin ? "Admin instance · " : ""}{workspace.role}</span>
             </div>
-            <ThemeToggle />
           </div>
-          <SignOutButton />
+
+          <div className="sidebar-utility-row">
+            <ThemeToggle />
+            <SignOutButton />
+          </div>
         </div>
       </aside>
 
-      <main className="main">
-        <header className="topbar">
+      <main className="main workshop-main">
+        <header className="topbar workshop-topbar">
           <Link href="/dashboard" className="mobile-brand" aria-label="Filario">
             <img className="light-logo" src="/brand/filario-icon-light.png" alt="" />
             <img className="dark-logo" src="/brand/filario-icon-dark.png" alt="" />
             <span>Filario</span>
           </Link>
 
-          <div className="topbar-workspace">
+          <div className="topbar-context">
             <span className="status-dot" />
-            <span>{workspace.organizationName}</span>
+            <strong>{workspace.organizationName}</strong>
+            <span className="topbar-context-separator">/</span>
+            <span>Atelier</span>
           </div>
 
           <div className="topbar-actions">
+            <Link className="topbar-quick-action desktop-only" href="/inventory/new">
+              + Bobine
+            </Link>
+            <Link className="topbar-quick-action desktop-only" href="/printers">
+              Machines
+            </Link>
             <div className="desktop-only"><ThemeToggle /></div>
+
             <details className="mobile-menu">
               <summary aria-label="Ouvrir le menu du compte">
                 <span className="avatar small">{initials || "F"}</span>
@@ -110,7 +122,7 @@ export function AppShell({
           </div>
         </header>
 
-        <div className="content">{children}</div>
+        <div className="content workshop-content">{children}</div>
       </main>
 
       <MobileBottomNavigation />
