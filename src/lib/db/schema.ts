@@ -96,6 +96,8 @@ export const printers = pgTable("printers", {
   model: text("model"),
   integrationType: text("integration_type"),
   integrationUrl: text("integration_url"),
+  externalId: text("external_id"),
+  integrationMetadata: jsonb("integration_metadata").notNull().default({}),
   status: text("status").notNull().default("idle"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
@@ -250,4 +252,43 @@ export const modelCollectionItems = pgTable("model_collection_items", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
 }, (t) => [
   uniqueIndex("model_collection_items_pk").on(t.collectionId, t.modelId)
+]);
+
+
+export const bambuAccounts = pgTable("bambu_accounts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull(),
+  email: text("email").notNull(),
+  region: text("region").notNull().default("global"),
+  tokenCiphertext: text("token_ciphertext").notNull(),
+  tokenIv: text("token_iv").notNull(),
+  tokenTag: text("token_tag").notNull(),
+  tokenExpiresAt: timestamp("token_expires_at", { withTimezone: true }),
+  status: text("status").notNull().default("connected"),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+}, (t) => [
+  uniqueIndex("bambu_accounts_org_user_email_region_uq").on(t.organizationId, t.userId, t.email, t.region),
+  index("bambu_accounts_org_idx").on(t.organizationId, t.updatedAt)
+]);
+
+export const bambuDevices = pgTable("bambu_devices", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  accountId: uuid("account_id").notNull().references(() => bambuAccounts.id, { onDelete: "cascade" }),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  printerId: uuid("printer_id").references(() => printers.id, { onDelete: "set null" }),
+  devId: text("dev_id").notNull(),
+  name: text("name").notNull(),
+  productName: text("product_name"),
+  modelName: text("model_name"),
+  online: boolean("online").notNull().default(false),
+  rawData: jsonb("raw_data").notNull().default({}),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+}, (t) => [
+  uniqueIndex("bambu_devices_account_dev_uq").on(t.accountId, t.devId),
+  index("bambu_devices_org_idx").on(t.organizationId, t.updatedAt)
 ]);
